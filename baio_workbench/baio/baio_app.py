@@ -130,7 +130,8 @@ def app():
 
                 if submitted:
                     with get_openai_callback() as cb:
-                        result =go_file_tool({"input_file_path": file_path, "input_file_gene_name_column": input_file_gene_name_column})
+
+                        result =go_file_tool(file_path, input_file_gene_name_column)
                         go_file_annotator_file_manager= FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
 
                         try:
