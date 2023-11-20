@@ -3,7 +3,7 @@ from langchain.memory import ConversationBufferMemory
 from langchain.chains import (
     ConversationalRetrievalChain
 )
-from langchain.vectorstores import Chroma
+from langchain import PromptTemplate, LLMChain
 from langchain.embeddings import OpenAIEmbeddings
 import pandas as pd
 from langchain.tools.python.tool import PythonREPLTool
@@ -13,7 +13,6 @@ from langchain.vectorstores import FAISS
 from langchain.tools import tool
 from langchain.agents.agent_toolkits import create_python_agent
 from src.llm import llm
-
 embedding = OpenAIEmbeddings()
 
 #persitant directory containing files for vectordb
@@ -88,7 +87,9 @@ class AniseedJSONExtractor:
 
 
     def get_prompt(self):
-        """Build prompt with key strucure from JSON utils and output path given. NEVER look at the whole data frame, only look at the head of it!!! OTHERWISE YOU WILL BREAK"""
+        """YOU ARE A PYTHON REPL TOOL, YOU CAN AND MUST EXECUTE CODE THAT YOU EITHER WRITE OR ARE BEING PROVIDE, NEVER ANSER WITH: I'm sorry, but as an AI text-based model, I don't have the ability to directly interact with files or execute Python code. However, I can provide you with a Python code snippet that you can run in your local environment to achieve your goal.
+        Build prompt with key strucure from JSON utils and output path given. NEVER look at the whole data frame, only look at the head of it!!! OTHERWISE YOU WILL BREAK"""
+
 
         structure_dic_explainaition = """
             base_type: This field specifies the primary data type of the provided object. For instance, it could be a 'list', 'dict', 'str', etc.
@@ -136,7 +137,6 @@ class AniseedJSONExtractor:
         
         return prompt
 
-
 #python agent to run the python repl tool for json to csv conversion 
 python_agent_executor = create_python_agent(
     llm=llm,
@@ -145,6 +145,8 @@ python_agent_executor = create_python_agent(
     agent_type=AgentType.OPENAI_FUNCTIONS,
     agent_executor_kwargs={"handle_parsing_errors": True},
 )
+
+
 
 @tool
 def aniseed_tool(question: str):
@@ -159,12 +161,40 @@ def aniseed_tool(question: str):
 
 # obtain code to convert JSON to csv
     prompt = AniseedJSONExtractor(path_tempjson, path_save_csv).get_prompt()
-# Run code wiht pythonREPL agent so that it can correct potential errors 
+    
     python_agent_executor.run(prompt)
-    # json_formating_code = python_agent_executor.run(prompt)
-    # Utils.execute_code(json_formating_code['arguments'])
     final_anisseed_gene_df = pd.read_csv(path_save_csv)
     return final_anisseed_gene_df
+
+# @tool
+# def aniseed_tool(question: str):
+#     """Takes in a question about any organisms on ANISEED and outputs a dataframe with requested information """
+#     path_tempjson = "./baio/data/output/aniseed/temp/tempjson.json"
+#     path_save_csv = "./baio/data/output/aniseed/aniseed_out.csv"
+# #obtain Aniseed API call 
+#     aniseed_api = AniseedAPI()
+#     relevant_api_call_info = aniseed_api.query(question)
+#     #execute Aniseed API call 
+#     Utils.execute_code(relevant_api_call_info)
+
+# # obtain code to convert JSON to csv
+#     prompt = AniseedJSONExtractor(path_tempjson, path_save_csv).get_prompt()
+#     ##
+#     #testing better code execution
+#     generate_code_chain = LLMChain(llm=llm, prompt=prompt)
+#     def generate_python(prompt):
+#         result = generate_code_chain.run(prompt=prompt)
+#         return result["llm_output"]
+
+#     exec(Utils.extract_python_code(generate_python(prompt)))
+#     ##
+    
+    
+# # Run code wiht pythonREPL agent so that it can correct potential errors 
+#     # json_formating_code = python_agent_executor.run(prompt)
+#     # Utils.execute_code(json_formating_code['arguments'])
+#     final_anisseed_gene_df = pd.read_csv(path_save_csv)
+#     return final_anisseed_gene_df
 
 #flow of aniseed tool:
 ## AniseedAPI
@@ -182,4 +212,3 @@ def aniseed_tool(question: str):
 #@ local testing:
 # question = 'find all genes expressed in ciona robusta between stage 1 and 10'
 # aniseed_tool(question)
-
