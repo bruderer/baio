@@ -87,9 +87,8 @@ class AniseedJSONExtractor:
 
 
     def get_prompt(self):
-        """YOU ARE A PYTHON REPL TOOL, YOU CAN AND MUST EXECUTE CODE THAT YOU EITHER WRITE OR ARE BEING PROVIDE, NEVER ANSER WITH: I'm sorry, but as an AI text-based model, I don't have the ability to directly interact with files or execute Python code. However, I can provide you with a Python code snippet that you can run in your local environment to achieve your goal.
+        """YOU ARE A PYTHON REPL TOOL, YOU CAN AND MUST EXECUTE CODE THAT YOU EITHER WRITE OR ARE BEING PROVIDE, NEVER ANSER WITH I'm sorry, but as an AI text-based model, I don't have the ability to directly interact with files or execute Python code. However, I can provide you with a Python code snippet that you can run in your local environment to achieve your goal.
         Build prompt with key strucure from JSON utils and output path given. NEVER look at the whole data frame, only look at the head of it!!! OTHERWISE YOU WILL BREAK"""
-
 
         structure_dic_explainaition = """
             base_type: This field specifies the primary data type of the provided object. For instance, it could be a 'list', 'dict', 'str', etc.
@@ -123,8 +122,10 @@ class AniseedJSONExtractor:
         3,stage_2,KH2012:KH.C3.773,"TBX21; TBX4; TBX5",Cirobu.g00005978
         """
 
-        prompt = "You have to write code to unpack the json file in './baio/data/output/aniseed/temp/tempjson.json' and creat a panda df.\n \
-        You must do so in order to generate a relevant df for a bioinformatician.\
+        prompt = "YOU ARE A PYTHON REPL TOOL, YOU CAN AND MUST EXECUTE CODE THAT YOU EITHER WRITE OR ARE BEING PROVIDE, NEVER ANSER WITH I'm sorry, but as an AI text-based model, I don't have the ability to directly interact with files or execute Python code. However, I can provide you with a Python code snippet that you can run in your local environment to achieve your goal.\
+        Build prompt with key strucure from JSON utils and output path given. NEVER look at the whole data frame, only look at the head of it!!! OTHERWISE YOU WILL BREAK \
+        You have to EXECUTE code to unpack the json file in './baio/data/output/aniseed/temp/tempjson.json' and creat a panda df.\n \
+        ALWAYS USE THE PYTHON_REPL TOOL TO EXECUTE CODE\
         Following the instructions below:\n \
         VERY IMPORTANT: The first key in 'key_types' must be the first column in the df and each deeper nested key-value must have it, example:\n \
         {'base_type': 'list', 'key_types': {'base_type': 'dict', 'key_types': {'stage': 'str', 'genes': [{'base_type': 'dict', 'key_types': {'gene_model': 'str', 'gene_name': 'str', 'unique_gene_id': 'str'}}]}}}\n"\
@@ -147,13 +148,12 @@ python_agent_executor = create_python_agent(
 )
 
 
-
 @tool
 def aniseed_tool(question: str):
-    """Takes in a question about any organisms on ANISEED and outputs a dataframe with requested information """
+    """Takes in a question about any organisms on ANISEED and outputs a dataframe with requested information"""
     path_tempjson = "./baio/data/output/aniseed/temp/tempjson.json"
     path_save_csv = "./baio/data/output/aniseed/aniseed_out.csv"
-#obtain Aniseed API call 
+# #obtain Aniseed API call 
     aniseed_api = AniseedAPI()
     relevant_api_call_info = aniseed_api.query(question)
     #execute Aniseed API call 
@@ -161,7 +161,7 @@ def aniseed_tool(question: str):
 
 # obtain code to convert JSON to csv
     prompt = AniseedJSONExtractor(path_tempjson, path_save_csv).get_prompt()
-    
+    print('python agent will be executed')
     python_agent_executor.run(prompt)
     final_anisseed_gene_df = pd.read_csv(path_save_csv)
     return final_anisseed_gene_df
