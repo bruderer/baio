@@ -18,7 +18,7 @@ from langchain.chat_models import ChatOpenAI
 from baio.src.non_llm_tools.utilities import Utils, JSONUtils
 from langchain.callbacks import get_openai_callback
 from typing import Optional, Sequence
-
+import tempfile
 from langchain.llms import OpenAI
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import (
@@ -32,15 +32,17 @@ import faiss
 import uuid
 import requests
 import time
-
 import re
 from urllib.parse import urlencode
 import requests
 from pydantic import ValidationError
-import json
-import time
 from pydantic import BaseModel, Field, validator
+from concurrent.futures import ThreadPoolExecutor, as_completed
+import threading
+import json
 
+# Lock for synchronizing file access
+file_lock = threading.Lock()
 
 os.environ["OPENAI_API_KEY"] = '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'
 embeddings = OpenAIEmbeddings()
@@ -49,20 +51,34 @@ model_name = 'gpt-4'
 llm = ChatOpenAI(model_name=model_name, temperature=0)
 
 
-ncbi_jin_db = FAISS.load_local("/usr/src/app/baio/data/persistant_files/vectorstores/faissdb", embeddings)
+# ncbi_jin_db = FAISS.load_local("/usr/src/app/baio/data/persistant_files/vectorstores/faissdb", embeddings)
+from langchain.document_loaders.csv_loader import CSVLoader
+tmp_file_path = "/usr/src/app/baio/data/persistant_files/user_manuals/api_documentation/ucsc/ucsc_genomes_converted.csv"
 
+loader = CSVLoader(
+    file_path=tmp_file_path, 
+    encoding="utf-8",
+    csv_args={
+        "delimiter": ",",
+    }
+)
+
+data = loader.load()
+embeddings = OpenAIEmbeddings()
+ucsc_vectorstore = FAISS.from_documents(data, embeddings)
+ucsc_retriever = ucsc_vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 6})
 
 class BlastQueryRequest(BaseModel):
     url: str = Field(
-        default="https://blast.ncbi.nlm.nih.gov/Blast.cgi",
-        description="URL endpoint for API calls. 1: the NCBI BLAST API. 2: DNA alignnment to human genome use: 'https://genome.ucsc.edu/cgi-bin/hgBlat'?"
+        default="https://blast.ncbi.nlm.nih.gov/Blast.cgi?",
+        description="URL endpoint for API calls, the NCBI BLAST API for general biology questions is default and  DNA alignnment to a specific genome use https://genome.ucsc.edu/cgi-bin/hgBlat?"
     )
     cmd: str = Field(
         default="Put",
         description="Command to execute, 'Put' for submitting query, 'Get' for retrieving results."
     )
-    program: str = Field(
-        ...,
+    program: Optional[str] = Field(
+        default="blastn",
         description="BLAST program to use, e.g., 'blastn' for nucleotide BLAST."
     )
     database: str = Field(
@@ -71,7 +87,7 @@ class BlastQueryRequest(BaseModel):
     )
     query: Optional[str] = Field(
         None,
-        description="Nucleotide or protein sequence for the BLAST query."
+        description="Nucleotide or protein sequence for the BLAST or blat query, make sure to always keep the entire sequence given."
     )
     format_type: Optional[str] = Field(
         default="Text",
@@ -98,9 +114,9 @@ class BlastQueryRequest(BaseModel):
         description="Set to 'on' for human genome alignemnts"
     )
     # Additional fields for UCSC Genome Browser
-    ucsc_genome: str = Field(
+    ucsc_db: str = Field(
         default="hg38",
-        description="Genome assembly to use in the UCSC Genome Browser."
+        description="Genome assembly to use in the UCSC Genome Browser, use the correct db for the organisms. Human:hsg38; Mouse:mm10; Dog:canFam6"
     )
     ucsc_track: str = Field(
         default="genes",
@@ -135,8 +151,9 @@ class NCBIAPI:
         template_api_ncbi = """
         You have to provide the necessary information to answer this question 
         Question: {question}\n\n
-        Based on the explanaitions and example questions below:\n
+        Based on the explanation and example questions below:\n
         {context}
+        Note: for DNA sequence alignment of an orgnaisms genome ALWAYS use: https://genome.ucsc.edu/cgi-bin/hgBlat?
         """
         self.ncbi_CHAIN_PROMPT = PromptTemplate(input_variables=["context", "question"], template=template_api_ncbi)
     def query(self, question: str) -> str:
@@ -165,10 +182,28 @@ class AnswerExtractor:
         {context}
         """
         self.ncbi_CHAIN_PROMPT = PromptTemplate(input_variables=["context", "question"], template=template_api_ncbi)
-    def query(self,  question: str, file_path:str) -> str:
-        #first embedd file
-        loader = TextLoader(file_path)
+    def query(self,  question: str, file_path: str) -> str:
+        #we make a short extract of the top hits of the files
+        first_400_lines = []
+        with open(file_path, 'r') as file:
+            for _ in range(400):
+                line = file.readline()
+                if not line:
+                    break
+                first_400_lines.append(line)
+        # Create a temporary file and write the lines to it
+        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
+            temp_file.writelines(first_400_lines)
+            temp_file_path = temp_file.name       
+        if os.path.exists(temp_file_path):
+            print('found file')
+            print(temp_file_path)
+            loader = TextLoader(temp_file_path)
+        else:
+            print(f"Temporary file not found: {temp_file_path}")   
+        # loader = TextLoader(temp_file_path)
         documents = loader.load()
+        os.remove(temp_file_path)
         #split
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
         docs = text_splitter.split_documents(documents)
@@ -184,29 +219,49 @@ class AnswerExtractor:
         )
         relevant_api_call_info = ncbi_qa_chain(question)
         return relevant_api_call_info
-    
+
+import re
+
+def extract_content_between_backticks(text):
+    # Regular expression pattern for content within triple backticks
+    pattern = r"```(.*?)```"
+
+    # Search for matches
+    matches = re.findall(pattern, text, re.DOTALL)
+
+    # Return the first match or None if no match is found
+    return matches[0] if matches else None
+
 def api_query_generator(question: str):
     """ function executing:
     1: text retrieval from ncbi_doc
     2: structured data from (1) to generate BlastQueryRequest object
     """
     ncbi_api = NCBIAPI()
-    relevant_api_call_info = ncbi_api.query(question)
+    retrieved_docs = ucsc_retriever.get_relevant_documents(question+'if the question is not about a specific organism dont retrieve anything')
+    ucsc_info = retrieved_docs[0].page_content
+    relevant_api_call_info = ncbi_api.query(f'answer this question:{question}\nYou might need this information for a sequence alignemnt to a genome if the organisms name in the question matches this:{ucsc_info}. Here is more information you need to answer the question:')
 # Set up a parser + inject instructions into the prompt template.
     parser = PydanticOutputParser(pydantic_object=BlastQueryRequest)
     # Prompt
     prompt = PromptTemplate(
-        template="Answer the user query.\n{format_instructions}\n{query}\n",
-        input_variables=["query"],
+        template="Answer the user query \n{format_instructions}\n{query}\n",
+        input_variables=["query", "context"],
         partial_variables={"format_instructions": parser.get_format_instructions()},
     )
     # Run Retrieval and write strucutred output 
     _input = prompt.format_prompt(query=question)
+    print('input to string:\n\n\n')
     print(_input.to_string())
+    print('-----')
     model = OpenAI(temperature=0)
     #output is a json, annoying but we have to deal with it
     output = model(_input.to_string())
+    # output = extract_content_between_backticks(_input.to_string())
+    # output = _input.to_string()
+    print('output processed:\n')
     print(output)
+    print('\nDONE WITH OUTPUT ')
     parser.parse(output)
     try:
         query_request = BlastQueryRequest.parse_raw(output)
@@ -226,7 +281,7 @@ def submit_blast_query(request_data: BlastQueryRequest):
         data = {
             'userSeq' : request_data.query,
             'type': request_data.ucsc_query_type,
-            'db': request_data.ucsc_genome,
+            'db': request_data.ucsc_db,
             'output': 'json'
         }
         # Make the API call
@@ -262,40 +317,87 @@ def submit_blast_query(request_data: BlastQueryRequest):
         else:
             raise ValueError("RID not found in BLAST submission response.")
 
-def log_question_uuid(question_uuid, question, log_file_path):
+def log_question_uuid_json(question_uuid, question, file_name, file_path, log_file_path, full_url):
+    # Create the directory if it doesn't exist
     directory = os.path.dirname(log_file_path)
     if not os.path.exists(directory):
         os.makedirs(directory, exist_ok=True)
 
-    # Read existing data or initialize new data
-    if os.path.exists(log_file_path):
-        with open(log_file_path, 'r') as file:
-            data = json.load(file)
-    else:
-        data = []
+    # Initialize or load existing data
+    data = []
 
-    # Add new entry
-    data.append({"uuid": question_uuid, "question": question})
+    # Try reading existing data, handle empty or invalid JSON
+    if os.path.exists(log_file_path) and os.path.getsize(log_file_path) > 0:
+        try:
+            with file_lock:
+                with open(log_file_path, 'r') as file:
+                    data = json.load(file)
+        except json.JSONDecodeError:
+            print(f"Warning: Could not decode JSON in {log_file_path}. Starting a new log.")
+
+    # Construct the full file path
+    full_file_path = os.path.join(file_path, file_name)
+
+    # Add new entry with UUID, question, file name, and file path
+    data.append({
+        "uuid": question_uuid, 
+        "question": question, 
+        "file_name": file_name, 
+        "file_path": full_file_path,
+        "API_info": full_url
+    })
 
     # Write updated data
-    with open(log_file_path, 'w') as file:
-        json.dump(data, file, indent=4)
-        
-def fetch_and_save_blast_results(request_data: BlastQueryRequest, blast_query_return: str, save_path: str , question: str, log_file_path: str, wait_time: int = 15, max_attempts: int = 10000):
+    with file_lock:
+        with open(log_file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+ 
+def custom_json_serializer(data, indent=1):
+    """
+    Custom JSON serializer to put each key on a new line. Reduce token size of UCSC returns.
+    """
+    def serialize(obj, indent_level=0):
+        spaces = ' ' * indent_level * indent
+        if isinstance(obj, dict):
+            if not obj:
+                return '{}'
+            items = [f'\n{spaces}"{key}": {serialize(value, indent_level + 1)}' for key, value in obj.items()]
+            return '{' + ','.join(items) + f'\n{spaces[:-indent]}' + '}'
+        elif isinstance(obj, list):
+            if not obj:
+                return '[]'
+            items = [serialize(value, indent_level + 1) for value in obj]
+            return '[\n' + f',\n'.join(f'{spaces}{item}' for item in items) + f'\n{spaces[:-indent]}]'
+        else:
+            return json.dumps(obj)
+
+    return serialize(data)
+         
+def fetch_and_save_blast_results(request_data: BlastQueryRequest, blast_query_return: str, save_path: str , 
+                                 question: str, log_file_path: str, wait_time: int = 15, max_attempts: int = 10000):
     request_data.question_uuid=str(uuid.uuid4())
-    log_question_uuid(request_data.question_uuid, question, log_file_path)
     if 'ucsc' in request_data.url:
+        file_name = f'BLAT_results_{request_data.question_uuid}.json'
+        log_question_uuid_json(request_data.question_uuid,question, file_name, save_path, log_file_path,blast_query_return)
         response = requests.post(blast_query_return)
         response.raise_for_status()
         if response.status_code == 200:
-            blat_result = response.json()       
-            with open(f'{save_path}/BLAT_results_{request_data.question_uuid}.txt', 'w') as f:
-                json.dump(blat_result, f, indent=4)
-            return blat_result
+            result_path = os.path.join(save_path, file_name)
+            with open(result_path, 'w') as file:
+                try:
+                    blat_result = response.json()  
+                    formatted_json = custom_json_serializer(blat_result)     
+                    json.dump(formatted_json, file, indent=0)
+                except json.JSONDecodeError:
+                    # If it's not JSON, save the raw text
+                    file.write(response.text)
+                return blat_result 
         else:
             blat_result = f"Error: {response.status_code}"
             return blat_result
     if 'blast' in request_data.url:
+        file_name = f'BLAST_results_{request_data.question_uuid}.txt'
+        log_question_uuid_json(request_data.question_uuid,question, file_name, save_path, log_file_path,blast_query_return)        
         base_url = "https://blast.ncbi.nlm.nih.gov/Blast.cgi"
         check_status_params = {
             'CMD': 'Get',
@@ -316,30 +418,87 @@ def fetch_and_save_blast_results(request_data: BlastQueryRequest, blast_query_re
                 print(f"{request_data.question_uuid} results not ready, waiting...")
                 time.sleep(wait_time)
             elif 'Status=FAILED' in status_text:
-                raise Exception("BLAST query failed.")
+                with open(f'{save_path}{file_name}', 'w') as file:
+                    file.write("BLAST query FAILED.")
             elif 'Status=UNKNOWN' in status_text:
-                raise Exception("BLAST query expired or does not exist.")
+                with open(f'{save_path}{file_name}', 'w') as file:
+                    file.write("BLAST query expired or does not exist.")
+                raise 
             elif 'Status=READY' in status_text:
                 if 'ThereAreHits=yes' in status_text:
                     print("{request_data.question_uuid} results are ready, retrieving and saving...")
                     results_response = requests.get(base_url, params=get_results_params)
                     results_response.raise_for_status()
                     # Save the results to a file
-                    with open(f'{save_path}/BLAST_results_{request_data.question_uuid}.txt', 'w') as file:
+                    print(f'{save_path}{file_name}')
+                    with open(f'{save_path}{file_name}', 'w') as file:
                         file.write(results_response.text)
                     print(f'Results saved in BLAST_results_{request_data.question_uuid}.txt')
                     break
                 else:
-                    print("No hits found.")
+                    # Writing "No hits found" to the file
+                    with open(f'{save_path}{file_name}', 'w') as file:
+                        file.write("No hits found")
                     break
             else:
-                raise Exception("Unknown status.")
+                print('Unknown status')
+                with open(f'{save_path}{file_name}', 'w') as file:
+                    file.write("Unknown status")
+                break 
         if attempt == max_attempts - 1:
             raise TimeoutError("Maximum attempts reached. Results may not be ready.")
 
 def blast_result_file_extractor(question, file_path):
     """Extracting the answer from blast result file"""
-    print('In result file extractor')
+    print('In blast result file extractor')
     #extract answer
     answer_extractor = AnswerExtractor()
     return answer_extractor.query(question, file_path)
+
+##
+###
+####
+#####
+model_name = 'gpt-3.5-turbo-1106'
+llm = ChatOpenAI(model_name=model_name, temperature=0)
+
+
+log_file_path='/usr/src/app/baio/data/persistant_files/evaluation/251123_test_log_2/logfile.json'
+save_file_path='/usr/src/app/baio/data/persistant_files/evaluation/251123_test_log_2/'
+question= "Which organism does the DNA sequence come from:ATGTGCTTGTAGGAAGCAGCACAGGCCAGAAGAGGTTGTCAGATTCCCTAGAACTGGAGTTAGAAGCAGTTGTGAGCTCCTCTATGTAGGTGCTGAGAACTAAACCTGGATCCCATGAGCCATCTCCCTAA"
+
+cost_questions = 0
+with get_openai_callback() as cb:
+    for question in question_list:
+        query_request = api_query_generator(question)
+        print('generated query\n\n\n')
+        rid = submit_blast_query(query_request)
+        print(f"Total cost is: {cb.total_cost} USD")
+
+        error_list = []
+        fetch_and_save_blast_results(query_request,rid, save_file_path, question, log_file_path)
+
+        print(f"Total cost is: {cb.total_cost} USD")
+
+        with file_lock:
+            with open(log_file_path, 'r') as file:
+                data = json.load(file)
+            current_uuid = data[-1]['uuid']
+        
+        # Access the last entry in the JSON array
+        last_entry = data[-1]
+        # Extract the file path
+        current_file_path = last_entry['file_path']
+        result = blast_result_file_extractor(question, current_file_path)
+        print(result['answer'])
+        for entry in data:
+            if entry['uuid'] == current_uuid:
+                entry['answer'] = result['answer']
+                break
+        # Write the updated data back to the log file
+        with file_lock:
+            with open(log_file_path, 'w') as file:
+                json.dump(data, file, indent=4)        
+        print(f"Query cost is: {cb.total_cost} USD")
+        cost_questions+=cb.total_cost
+        print(f"Total cost is: {cost_questions} USD")
