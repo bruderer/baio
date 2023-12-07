@@ -4,13 +4,11 @@ from langchain.embeddings import OpenAIEmbeddings
 from langchain.document_loaders import PyPDFLoader
 from typing import List
 from langchain.document_loaders import DirectoryLoader
-from langchain.document_loaders import PyPDFLoader
-from langchain.text_splitter import CharacterTextSplitter
 from langchain.vectorstores import VectorStore
+####REQ FOR NCBI DOC
 from langchain.document_loaders import TextLoader
-from langchain.document_loaders import TextLoader
-from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
+from langchain.vectorstores import FAISS
 
 embedding = OpenAIEmbeddings()
 
@@ -79,3 +77,17 @@ vectordb = Chroma.from_documents(documents= mygene_all_splits
 
                                             embedding=embedding,
                                             persist_directory=persist_directory)
+
+
+####NCBI doc 
+loader = TextLoader("/usr/src/app/baio/data/persistant_files/user_manuals/api_documentation/ncbi/jin_et_al.txt")
+
+documents = loader.load()
+text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=50)
+docs = text_splitter.split_documents(documents)
+embeddings = OpenAIEmbeddings()
+
+ncbi_jin_db = FAISS.from_documents(docs, embeddings)
+ncbi_jin_db.save_local("/usr/src/app/baio/data/persistant_files/vectorstores/ncbi_jin_db_faiss_index")
+
+ncbi_jin_db = FAISS.load_local("/usr/src/app/baio/data/persistant_files/vectorstores/ncbi_jin_db_faiss_index", embeddings)
