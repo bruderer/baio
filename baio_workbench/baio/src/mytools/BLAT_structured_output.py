@@ -210,7 +210,7 @@ def BLAT_API_call_executer(request_data: BLATQueryRequest):
         print(f"URL Error: {e.reason}")
         return f"URL Error: {e.reason}"
 
-def save_BLAT_resul(query_request, BLAT_response, file_path):
+def save_BLAT_result(query_request, BLAT_response, file_path):
     """Function saving BLAT results and returns file_name"""
     try:
         # Set file name and construct full file path
@@ -277,7 +277,7 @@ def BLAT_tool(question: str):
     print(query_request)
     BLAT_response = BLAT_API_call_executer(query_request)
     print(BLAT_response)
-    file_name = save_BLAT_resul(query_request, BLAT_response, file_path)
+    file_name = save_BLAT_result(query_request, BLAT_response, file_path)
     log_question_uuid_json(query_request.question_uuid, question, file_name, file_path, log_file_path, query_request.full_url)
     result = BLAT_answer(log_file_path, question)
     return result

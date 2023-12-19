@@ -16,7 +16,7 @@ def csv_agent_creator(path: str):
     
     df1 = pd.read_csv(path[0])
     print(path)
-    if path and len(path) > 1 and path[1] is not '':
+    if path and len(path) > 1 and path[1] != '':
         df2 = pd.read_csv(path[1])
         csv_chatter_agent = create_pandas_dataframe_agent(llm, 
                                                 [df1,df2], 

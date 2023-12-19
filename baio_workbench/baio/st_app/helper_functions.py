@@ -9,8 +9,6 @@ import sys
 import threading
 import time
 
-from src.agents import ncbi_agent
-
 def preview_file(file_path):
     """Preview the content of the selected file based on its type."""
     filename = os.path.basename(file_path)
@@ -79,14 +77,4 @@ class OutputCapture:
 
     def get_value(self):
         return self.buffer.getvalue()
-
-# Function to run ncbi_agent in a thread
-def run_ncbi_agent(question, output_queue, callback_info):
-    try:
-        result = ncbi_agent(question)
-        output_queue.put(result)
-    except Exception as e:
-        output_queue.put(str(e))
-    finally:
-        callback_info['cost'] = callback_info.get('total_cost', 'Unknown')
 

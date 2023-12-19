@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from st_app.file_manager import FileManager
 from langchain.callbacks import get_openai_callback
-from st_app.helper_functions import save_uploaded_file, run_ncbi_agent
+from st_app.helper_functions import save_uploaded_file
 from src.llm import initialize_llm, get_llm
 
 
