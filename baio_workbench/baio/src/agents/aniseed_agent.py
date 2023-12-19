@@ -6,7 +6,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.agents import Tool
 from langchain.agents import AgentType
 from langchain.memory import ConversationBufferMemory
-from langchain.tools.python.tool import PythonREPLTool
+from langchain_experimental.tools.python.tool import PythonREPLTool
 
 from src.mytools.go_tool import go_nl_query_tool
 from src.mytools.aniseed import aniseed_tool
@@ -59,3 +59,4 @@ memory = ConversationBufferMemory(memory_key='chat_history', return_messages=Tru
 llm_chain = LLMChain(llm=llm, prompt=prompt)
 
 aniseed_go_agent = initialize_agent(tools, llm, agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION, verbose=True, memory=memory)
+# aniseed_go_agent.run('What genes are expressed between stage 1 and 3 in ciona robusta?')

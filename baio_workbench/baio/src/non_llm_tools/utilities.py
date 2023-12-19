@@ -2,10 +2,10 @@ import pandas as pd
 import json
 import ast
 import os 
-import re 
+import json 
 import threading
 import json
-
+from pydantic import BaseModel
 # Lock for synchronizing file access
 file_lock = threading.Lock()
 
@@ -149,9 +149,71 @@ class JSONUtils:
             obj = json.load(file)
         return self.extract_keys_from_obj(obj)
 
+def log_question_uuid_json(question_uuid: str, question: str, file_name: str, file_path: str, log_file_path: str, full_url: str):
+    """
+    Logs information about a question into a JSON file.
 
+    This function takes details about a query object and appends them to a log file in JSON format. It is designed to track questions and associated metadata for record-keeping or analysis purposes.
 
+    Args:
+        question_uuid (str): A unique identifier for the question, typically in UUID format.
+        question (str): The text of the question.
+        file_name (str): The name of the file where the question is originally stored or referenced.
+        file_path (str): The path to the file where the question is stored, relative or absolute.
+        log_file_path (str): The path to the JSON log file where the question details will be appended.
+        full_url (str): The full URL, if any, associated with the question or its source.
 
+    Returns:
+        None: This function does not return any value. It performs a logging action.
+
+    Example:
+        log_question_uuid_json("123e4567-e89b-12d3-a456-426614174000", "What is the capital of France?", 
+                               "questions.txt", "/path/to/questions.txt", "/path/to/log.json", 
+                               "https://example.com/question/123e4567-e89b-12d3-a456-426614174000")
+
+    Note:
+        The function assumes that the log file specified in `log_file_path` exists and is in a valid JSON format. 
+        It appends the question data as a new object in the JSON array.
+    """
+    # Function implementation goes here
+
+    directory = os.path.dirname(log_file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory, exist_ok=True)
+
+    # Initialize or load existing data
+    data = []
+
+    # Try reading existing data, handle empty or invalid JSON
+    if os.path.exists(log_file_path) and os.path.getsize(log_file_path) > 0:
+        try:
+            with file_lock:
+                with open(log_file_path, 'r') as file:
+                    data = json.load(file)
+        except json.JSONDecodeError:
+            print(f"Warning: Could not decode JSON in {log_file_path}. Starting a new log.")
+
+    # Construct the full file path
+    full_file_path = os.path.join(file_path, file_name)
+
+    # Add new entry with UUID, question, file name, and file path
+    data.append({
+        "uuid": question_uuid, 
+        "question": question, 
+        "file_name": file_name, 
+        "file_path": full_file_path,
+        "API_info": full_url
+    })
+
+    # Write updated data
+    with file_lock:
+        with open(log_file_path, 'w') as file:
+            json.dump(data, file, indent=4)
+ 
+ 
+ ####new functions 
+import re
+ 
 def extract_content_between_backticks(text):
     # Regular expression pattern for content within triple backticks
     pattern = r"```(.*?)```"
@@ -161,70 +223,3 @@ def extract_content_between_backticks(text):
 
     # Return the first match or None if no match is found
     return matches[0] if matches else None
-
-
-def ucsc_custom_json_serializer(data, indent=1):
-    """
-    Custom JSON serializer to put each key on a new line. Reduce token size of UCSC returns.
-    """
-    def serialize(obj, indent_level=0):
-        spaces = ' ' * indent_level * indent
-        if isinstance(obj, dict):
-            if not obj:
-                return '{}'
-            items = [f'\n{spaces}"{key}": {serialize(value, indent_level + 1)}' for key, value in obj.items()]
-            return '{' + ','.join(items) + f'\n{spaces[:-indent]}' + '}'
-        elif isinstance(obj, list):
-            if not obj:
-                return '[]'
-            items = [serialize(value, indent_level + 1) for value in obj]
-            return '[\n' + f',\n'.join(f'{spaces}{item}' for item in items) + f'\n{spaces[:-indent]}]'
-        else:
-            return json.dumps(obj)
-    return serialize(data)
-     
-
-def log_question_uuid_json(question_uuid, question, file_name, file_path, log_file_path, url):
-    # Create the directory if it doesn't exist
-    directory = os.path.dirname(log_file_path)
-    if not os.path.exists(directory):
-        os.makedirs(directory, exist_ok=True)
-    
-    # Initialize or load existing data
-    data = []
-    # Try reading existing data, handle empty or invalid JSON
-    if os.path.exists(log_file_path) and os.path.getsize(log_file_path) > 0:
-        try:
-            with file_lock:
-                with open(log_file_path, 'r') as file:
-                    data = json.load(file)
-        except json.JSONDecodeError:
-            print(f"Warning: Could not decode JSON in {log_file_path}. Starting a new log.")
-    
-    # Find if the entry already exists
-    entry_found = False
-    for entry in data:
-        if entry["uuid"] == question_uuid:
-            # Append new URL to the existing entry's API_info list
-            entry["API_info"].append(url)
-            entry_found = True
-            break
-    
-    # If entry not found, create a new one
-    if not entry_found:
-        # Construct the full file path
-        full_file_path = os.path.join(file_path, file_name)
-        # Add new entry
-        data.append({
-            "uuid": question_uuid, 
-            "question": question, 
-            "file_name": file_name, 
-            "file_path": full_file_path,
-            "API_info": [url]  # Initialize as a list with the URL
-        })
-
-    # Save the updated data back to the JSON file
-    with file_lock:
-        with open(log_file_path, 'w') as file:
-            json.dump(data, file, indent=4)
-

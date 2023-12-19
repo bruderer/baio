@@ -2,7 +2,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.agents.agent_types import AgentType
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import AgentType
-from langchain.agents import create_pandas_dataframe_agent
+from langchain_experimental.agents import create_pandas_dataframe_agent
 import pandas as pd
 
 from src.llm import llm

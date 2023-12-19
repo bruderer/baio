@@ -3,6 +3,13 @@ import os
 import pandas as pd
 import streamlit as st
 import base64
+import io
+import contextlib
+import sys
+import threading
+import time
+
+from src.agents import ncbi_agent
 
 def preview_file(file_path):
     """Preview the content of the selected file based on its type."""
@@ -49,3 +56,37 @@ def save_uploaded_file(uploaded_file, UPLOAD_DIR):
     """Save the uploaded file to the specified directory."""
     with open(os.path.join(UPLOAD_DIR, uploaded_file.name), "wb") as f:
         f.write(uploaded_file.getvalue())
+
+@contextlib.contextmanager
+def capture_output():
+    new_out = io.StringIO()
+    old_out = sys.stdout
+    try:
+        sys.stdout = new_out
+        yield sys.stdout
+    finally:
+        sys.stdout = old_out
+# Custom output stream
+class OutputCapture:
+    def __init__(self):
+        self.buffer = io.StringIO()
+
+    def write(self, message):
+        self.buffer.write(message)
+
+    def flush(self):
+        pass  # Not needed for StringIO
+
+    def get_value(self):
+        return self.buffer.getvalue()
+
+# Function to run ncbi_agent in a thread
+def run_ncbi_agent(question, output_queue, callback_info):
+    try:
+        result = ncbi_agent(question)
+        output_queue.put(result)
+    except Exception as e:
+        output_queue.put(str(e))
+    finally:
+        callback_info['cost'] = callback_info.get('total_cost', 'Unknown')
+

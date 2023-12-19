@@ -1,11 +1,10 @@
-import sys
-import mygene
 import os
 import streamlit as st
 from st_app.file_manager import FileManager
 from langchain.callbacks import get_openai_callback
-from st_app.helper_functions import save_uploaded_file
+from st_app.helper_functions import save_uploaded_file, run_ncbi_agent
 from src.llm import initialize_llm, get_llm
+
 
 UPLOAD_DIR = "./baio/data/uploaded/"
 DOWNLOAD_DIR = './baio/data/output/'
@@ -32,7 +31,7 @@ def app():
     banner_image = "./baio/data/persistant_files/baio_logo.png"  
     st.image(banner_image, use_column_width=True)  
     openai_api_key = st.sidebar.text_input('OpenAI API KEY')
-    model_options = ['gpt-4-1106-preview', 'gpt-4', 'gpt-4-32k', 'gpt-3.5']
+    model_options = ['gpt-4-1106-preview', 'gpt-4', 'gpt-4-32k', 'gpt-3.5-turbo']
     default_model = 'gpt-4'
     selected_model = st.sidebar.selectbox(
         'Select a model',
@@ -56,8 +55,10 @@ def app():
         os.environ["OPENAI_API_KEY"] = openai_api_key
         go_file_annotator = 'Local GO agent'
         file_chatter = 'Local file agent'
-        selected_agent = st.radio("Choose an agent:", ["BaIO agent", go_file_annotator, file_chatter])
+        ncbi = 'NCBI'
+        selected_agent = st.radio("Choose an agent:", ["BaIO agent", go_file_annotator, file_chatter, ncbi])
         from src.mytools.go_tool import go_file_tool
+        from src.agents.ncbi_agent import ncbi_agent
         from src.agents.aniseed_agent import aniseed_go_agent
         from src.agents.file_annotator_agent import file_annotator_agent
         from src.mytools.csv_chatter_tool import filechatter_instructions
@@ -103,7 +104,7 @@ def app():
                             st.write('Something went wrong, please try to reforumulate your question')
                 if reset_memory:
                     aniseed_go_agent.memory.clear()  
-            file_manager = FileManager("./baio/data/output/", "./baio/data/upload/")
+            file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
             file_manager.run()                                     
 
 
@@ -150,7 +151,6 @@ def app():
         #CHAT WITH YOUR CSV AND OTHER FILES
         elif selected_agent == file_chatter:
             csv_chatter_file_manager= FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
-            
             st.write("Ask questions about your selected or uploaded file")
             with st.expander("Instructions"): st.markdown(read_txt_file(csv_instruction_txt_path))
             uploaded_file = st.file_uploader("Upload your file with genes here", type=["csv", "xlsx", "txt"])
@@ -191,7 +191,37 @@ def app():
             file_manager = FileManager("./baio/data/output/", "./baio/data/upload/")
             file_manager.run()     
             
-        
+        ####
+        ####    NCBI
+        ####            
+            
+        elif selected_agent == ncbi:
+            file_manager_aniseed = FileManager()
+            with st.form('form_for_aniseed_agent'):
+                st.write("NCBI agent") 
+                with st.expander("Instructions"): st.markdown(read_txt_file(aniseed_instruction_txt_path))
+                question = st.text_area('Enter question for NCBI agent:', 'Example: Convert ENSG00000205403 to official gene symbol.')
+                submitted = st.form_submit_button('Submit')
+                reset_memory = st.form_submit_button('Clear chat history')
+
+                # st.write(path_aniseed_out, path_go_nl_out)
+                # Add the file paths to the file_paths dictionary
+                            
+                if submitted:
+                    with get_openai_callback() as cb:
+                        try:
+                            result = ncbi_agent(question)
+                            st.info(result)
+                            st.info(f"Total cost is: {cb.total_cost} USD")
+                            st.write(f"Your generated file is below:")             
+                        except:
+                            st.write('Something went wrong, please try to reforumulate your question')
+                if reset_memory:
+                    ncbi_agent.memory.clear()  
+            file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
+            file_manager.run()                                     
+
+           
     else:
         st.write('version 0.0.1')
         st.markdown('<p style="font-size:48px;text-align:center;">AGENTS EXECUTE CODE ON YOUR MACHINE, IT IS RECOMMENDED TO USE BAIO IN A CONTAINER</p>', unsafe_allow_html=True)

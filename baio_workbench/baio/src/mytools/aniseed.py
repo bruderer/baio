@@ -1,34 +1,33 @@
-from langchain import PromptTemplate
 from langchain.memory import ConversationBufferMemory
 from langchain.chains import (
     ConversationalRetrievalChain
 )
-from langchain import PromptTemplate, LLMChain
+from langchain.prompts import PromptTemplate
+from langchain.chains import LLMChain
 from langchain.embeddings import OpenAIEmbeddings
 import pandas as pd
-from langchain.tools.python.tool import PythonREPLTool
+from langchain_experimental.tools.python.tool import PythonREPLTool
 from langchain.agents.agent_types import AgentType
 from src.non_llm_tools.utilities import Utils, JSONUtils
 from langchain.vectorstores import FAISS
 from langchain.tools import tool
-from langchain.agents.agent_toolkits import create_python_agent
+from langchain_experimental.agents.agent_toolkits import create_python_agent
 from src.llm import llm
+
 embedding = OpenAIEmbeddings()
 
 #persitant directory containing files for vectordb
-persist_directory = './baio/data/persistant_files/vectorstores/faissdb'
+# persist_directory = './baio/data/persistant_files/vectorstores/faissdb'
 #loading Chroma vectordb
 
-vectordb_aniseed = FAISS.load_local("./baio/data/persistant_files/vectorstores/faissdb", embedding)
+# vectordb_aniseed = FAISS.load_local("./baio/data/persistant_files/vectorstores/faissdb", embedding)
 
 
 
 # #persitant directory containing files for vectordb
 # persist_directory = './baio/data/persistant_files/vectorstores/aniseed_datastore/'
 # #loading Chroma vectordb
-# vectordb_aniseed = Chroma(persist_directory=persist_directory, 
-#                   embedding_function=embedding)
-
+vectordb_aniseed = FAISS.load_local("/usr/src/app/baio/data/persistant_files/vectorstores/aniseed", embedding)
 #aniseed api calling class
 class AniseedAPI:
 
@@ -134,7 +133,7 @@ class AniseedJSONExtractor:
         The file has a strucutre as explained in the follwoing description:\n" + str(self.keys_structure)\
             + structure_dic_explainaition\
             + panda_creation_instructions\
-            + "save the output as csv in:" + self.aniseed_csv_save_path
+            + "save the output as csv in:" + self.aniseed_csv_save_path + "EXECUTE CODE YOU IDIOT"
         
         return prompt
 
@@ -153,12 +152,11 @@ def aniseed_tool(question: str):
     """Takes in a question about any organisms on ANISEED and outputs a dataframe with requested information"""
     path_tempjson = "./baio/data/output/aniseed/temp/tempjson.json"
     path_save_csv = "./baio/data/output/aniseed/aniseed_out.csv"
-# #obtain Aniseed API call 
+#obtain Aniseed API call 
     aniseed_api = AniseedAPI()
     relevant_api_call_info = aniseed_api.query(question)
     #execute Aniseed API call 
     Utils.execute_code(relevant_api_call_info)
-
 # obtain code to convert JSON to csv
     prompt = AniseedJSONExtractor(path_tempjson, path_save_csv).get_prompt()
     print('python agent will be executed')

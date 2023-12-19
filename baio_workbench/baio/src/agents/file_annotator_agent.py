@@ -5,7 +5,7 @@ from langchain.chat_models import ChatOpenAI
 from langchain.agents import AgentType
 from langchain.memory import ConversationBufferMemory
 from langchain.agents import Tool
-from langchain.tools.python.tool import PythonREPLTool
+from langchain_experimental.tools.python.tool import PythonREPLTool
 from src.mytools.go_tool import go_file_tool
 from langchain.agents import initialize_agent
 from src.llm import llm 
