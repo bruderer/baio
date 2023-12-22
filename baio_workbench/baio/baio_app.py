@@ -13,6 +13,8 @@ side_bar_txt_path='./baio/st_app/text_content/side_bar_text.txt'
 aniseed_instruction_txt_path = './baio/st_app/text_content/aniseed_agent_instructions.txt'
 go_file_annotator_instruction_txt_path = './baio/st_app/text_content/go_annotator_instructions.txt'
 csv_instruction_txt_path = './baio/st_app/text_content/csv_chatter_instructions.txt'
+ncbi_instruction_txt_path = './baio/st_app/text_content/ncbi_agent_instructions.txt'
+
 LICENSE_path = './baio/st_app/text_content/LICENSE.txt'
 
 #initialising paths 
