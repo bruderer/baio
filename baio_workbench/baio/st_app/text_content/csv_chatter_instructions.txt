@@ -1,7 +1,0 @@
-This agent allows the investigation of up to two CSV files. Beware that this agent has no memory.
-
-You can ask questions about the files as well as provide natural language instructions that will be translated into code by the agent.
-
-This enables the creation of new files from the selected ones (filtering, concatenation, matching, etc.).
-
-It is recommended to provide precise instructions and to check the file outputs after the code has been executed by the agent.

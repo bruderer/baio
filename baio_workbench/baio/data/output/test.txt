@@ -1,2 +1,0 @@
-Hey there, this is a test file! 
-You will be able to see your other files here in the File Manager.

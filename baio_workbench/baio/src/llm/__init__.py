@@ -11,13 +11,10 @@ def initialize_llm(model_name, openai_api_key):
     global llm
     global llm35  # Declare llm35 as global within the function
     global embedding
-    if llm is None:  # Only initialize if not already done
-        llm = ChatOpenAI(model_name=model_name, temperature=0, openai_api_key=openai_api_key)
-        embedding = OpenAIEmbeddings()
-    if llm35 is None:  # Initialize llm35 if not already done
-        llm35 = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-1106", openai_api_key=openai_api_key)
-        embedding = OpenAIEmbeddings()
-
+    llm = ChatOpenAI(model_name=model_name, temperature=0, openai_api_key=openai_api_key)
+    llm35 = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-1106", openai_api_key=openai_api_key)
+    embedding = OpenAIEmbeddings(openai_api_key=openai_api_key)
+    
 def get_llm():
     if llm is None:
         raise Exception("LLM has not been initialized")
