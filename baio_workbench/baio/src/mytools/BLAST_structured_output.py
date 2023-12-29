@@ -31,7 +31,10 @@ import threading
 import json
 from src.non_llm_tools.utilities import log_question_uuid_json
 from langchain.tools import tool
-from src.llm import llm, embedding
+from src.llm import LLM
+llm = LLM.get_instance()
+
+embedding = LLM.get_embedding()
 
 BLAST_db = FAISS.load_local("/usr/src/app/baio/data/persistant_files/vectorstores/BLAST_db_faiss_index", embedding)
 
@@ -208,24 +211,24 @@ class BLASTAnswerExtractor:
         self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
         BLAST_file_answer_extractor_prompt = """
         You have to answer the question:{question} as clear and short as possible manner, be factual!\n\
-        For any kind of BLAST results use try to use the hit with the best idenity score to answer the questin, if it is not possible move to the next one. \n\
-        Be clear, and if organism names are present in ANY of the reults please use them in the answer, do not make up stuff and mention how relevant the found information is (based on the identity scores)
+        For any kind of BLAST results use try to use the hit with the best identity score to answer the question, if it is not possible move to the next one. \n\
+        Be clear, and if organism names are present in ANY of the result please use them in the answer, do not make up stuff and mention how relevant the found information is (based on the identity scores)
         Based on the information given here:\n\
         {context}
         """
         self.BLAST_file_answer_extractor_prompt = PromptTemplate(input_variables=["context", "question"], template=BLAST_file_answer_extractor_prompt)
-    def query(self,  question: str, file_path: str) -> str:
+    def query(self,  question: str, file_path: str, n: int) -> str:
         #we make a short of the top hits of the files
-        first_400_lines = []
+        first_n_lines = []
         with open(file_path, 'r') as file:
-            for _ in range(400):
+            for _ in range(n):
                 line = file.readline()
                 if not line:
                     break
-                first_400_lines.append(line)
+                first_n_lines.append(line)
         # Create a temporary file and write the lines to it
         with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
-            temp_file.writelines(first_400_lines)
+            temp_file.writelines(first_n_lines)
             temp_file_path = temp_file.name       
         if os.path.exists(temp_file_path):
             print(temp_file_path)
@@ -251,6 +254,26 @@ class BLASTAnswerExtractor:
         BLAST_answer= BLAST_answer_extraction_chain(question)
         return BLAST_answer
 
+def BLAST_answer(log_file_path, question, current_uuid, n_lignes: int):
+    print('in Answer function:')
+    with open(log_file_path, 'r') as file:
+        data = json.load(file)
+    print(current_uuid)
+    # Access the last entry in the JSON array
+    last_entry = data[-1]
+    # Extract the file path
+    current_file_path = last_entry['file_path']
+    print('3: Extracting answer')
+    answer_extractor = BLASTAnswerExtractor()
+    result = answer_extractor.query(question, current_file_path, n_lignes)
+    print(result)
+    for entry in data:
+        if entry['uuid'] == current_uuid:
+            entry['answer'] = result['answer']
+            break
+    with open(log_file_path, 'w') as file:
+        json.dump(data, file, indent=4)  
+    return result
 
 @tool
 def blast_tool(question: str):
@@ -266,18 +289,19 @@ def blast_tool(question: str):
     #retrieve BLAST results
     BLAST_file_name = fetch_and_save_blast_results(query_request, rid, save_file_path, question, log_file_path)
     #extract answer
-    answer_extractor = BLASTAnswerExtractor()
-    result = answer_extractor.query(question, save_file_path+BLAST_file_name)
-    # Update the log file with the answer for the current UUID
-    print(f'CURRENT ID IS:{current_uuid}\n')
-    print(result['answer'])
-    with file_lock:
-        with open(log_file_path, 'r') as file:
-            data = json.load(file)
-        for entry in data:
-            if entry['uuid'] == current_uuid:
-                entry['answer'] = result['answer']
-                break
-        with open(log_file_path, 'w') as file:
-            json.dump(data, file, indent=4)
+    # answer_extractor = BLASTAnswerExtractor()
+    result = BLAST_answer(log_file_path,question, current_uuid, 100)
+    # print(result)
+    # # Update the log file with the answer for the current UUID
+    # print(f'CURRENT ID IS:{current_uuid}\n')
+    # print(result['answer'])
+    # with file_lock:
+    #     with open(log_file_path, 'r') as file:
+    #         data = json.load(file)
+    #     for entry in data:
+    #         if entry['uuid'] == current_uuid:
+    #             entry['answer'] = result['answer']
+    #             break
+    #     with open(log_file_path, 'w') as file:
+    #         json.dump(data, file, indent=4)
     return result['answer']

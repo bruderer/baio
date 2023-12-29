@@ -1,13 +1,8 @@
-version: '3'
-
+version: '3.8'
 services:
-  app:
-    image: baio:0.0.1  # Use your local image
-    container_name: baio_dev
-    command: ["bash", "-c", "tail -f /dev/null"]  # run tail to keep the container running in the background
+  baioX:
+    image: baio:updated
     ports:
-      - "8889:8888" 
-    volumes:
-      - ./data:/home/data
-
-
+      - "8501:8501"
+    restart: unless-stopped
+    build: .

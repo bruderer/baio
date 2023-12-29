@@ -21,13 +21,16 @@ from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 import tempfile
 from src.non_llm_tools.utilities import log_question_uuid_json
-from src.llm import llm, embedding
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains.openai_functions import (
     create_structured_output_runnable,
 )
 from urllib.parse import urlencode
+from src.llm import LLM
 
+llm = LLM.get_instance()
+
+embedding = LLM.get_embedding()
 class BLATQueryRequest(BaseModel):
     url: str = Field(
         default="https://genome.ucsc.edu/cgi-bin/hgBlat?",
@@ -84,8 +87,6 @@ class AnswerExtractor:
     def __init__(self):
         self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
         template_api_eutils = """
-        You have to answer the question:{question} as clear and short as possible, be factual!\n\
-        Example question: Align the DNA sequence to the human genome:ATTCTGCCTTTAGTAATTTGATGACAGAGACTTCTTGGGAACCACAGCCAGGGAGCCACCCTTTACTCCACCAACAGGTGGCTTATATCCAATCTGAGAAAGAAAGAAAAAAAAAAAAGTATTTCTCT"
         You have to answer the question:{question} as clear and short as possible, be factual!\n\
         Example question: Align the DNA sequence to the human genome:ATTCTGCCTTTAGTAATTTGATGACAGAGACTTCTTGGGAACCACAGCCAGGGAGCCACCCTTTACTCCACCAACAGGTGGCTTATATCCAATCTGAGAAAGAAAGAAAAAAAAAAAAGTATTTCTCT"
         Output to find answer in: "track": "blat", "genome": "hg38", "fields": ["matches", "misMatches", "repMatches", "nCount", "qNumInsert", "qBaseInsert", "tNumInsert", "tBaseInsert", "strand", "qName", "qSize", "qStart", "qEnd", "tName", "tSize", "tStart", "tEnd", "blockCount", "blockSizes", "qStarts", "tStarts"], "blat": [[128, 0, 0, 0, 0, 0, 0, 0, "+", "YourSeq", 128, 0, 128, "chr15", 101991189, 91950804, 91950932, 1, "128", "0", "91950804"], [31, 0, 0, 0, 1, 54, 1, 73, "-", "YourSeq", 128, 33, 118, "chr6", 170805979, 48013377, 48013481, 2, "14,17", "10,78", "48013377,48013464"], [29, 0, 0, 0, 0, 0, 1, 114, "-", "YourSeq", 128, 89, 118, "chr9", 138394717, 125385023, 125385166, 2, "13,16", "10,23", "125385023,125385150"], [26, 1, 0, 0, 0, 0, 1, 2, "+", "YourSeq", 128, 1, 28, "chr17", 83257441, 62760282, 62760311, 2, "5,22", "1,6", "62760282,62760289"], [24, 3, 0, 0, 0, 0, 0, 0, "-", "YourSeq", 128, 54, 81, "chr11_KI270832v1_alt", 210133, 136044, 136071, 1, "27", "47", "136044"], [20, 0, 0, 0, 0, 0, 0, 0, "+", "YourSeq", 128, 106, 126, "chr2", 242193529, 99136832, 99136852, 1, "20", "106", "99136832"]]\
@@ -216,10 +217,29 @@ def save_BLAT_result(query_request, BLAT_response, file_path):
         # Set file name and construct full file path
         file_name = f'BLAT_results_{query_request.question_uuid}.json'
         full_file_path = os.path.join(file_path, file_name)
-        # Try to save as JSON
+
+        # Open the file for writing
         with open(full_file_path, 'w') as file:
-            json.dump(BLAT_response, file, indent=None)
-            return file_name
+            # Write the static parts of the BLAT_response
+            for key in BLAT_response:
+                if key != 'blat':
+                    json.dump({key: BLAT_response[key]}, file)
+                    file.write('\n')
+
+            # Write each list inside the 'blat' key on a new line
+            for blat_entry in BLAT_response['blat']:
+                json.dump(blat_entry, file)
+                file.write('\n')
+
+        return file_name
+    # try:
+    #     # Set file name and construct full file path
+    #     file_name = f'BLAT_results_{query_request.question_uuid}.json'
+    #     full_file_path = os.path.join(file_path, file_name)
+    #     # Try to save as JSON
+    #     with open(full_file_path, 'w') as file:
+    #         json.dump(BLAT_response, file, indent=None)
+    #         return file_name
     except Exception as e:
         # print(f"Error saving as JSON: {e}")
         # Determine the type of BLAT_response and save accordingly
@@ -248,6 +268,7 @@ def BLAT_answer(log_file_path, question):
     with open(log_file_path, 'r') as file:
         data = json.load(file)
     current_uuid = data[-1]['uuid']
+    print(current_uuid)
     # Access the last entry in the JSON array
     last_entry = data[-1]
     # Extract the file path

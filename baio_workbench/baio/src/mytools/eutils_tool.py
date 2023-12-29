@@ -24,7 +24,6 @@ from langchain.document_loaders import TextLoader
 from langchain.text_splitter import CharacterTextSplitter
 import tempfile
 from src.non_llm_tools.utilities import log_question_uuid_json
-from src.llm import llm
 from langchain.tools import tool
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains.openai_functions import (
@@ -33,8 +32,11 @@ from langchain.chains.openai_functions import (
 from langchain.chat_models import ChatOpenAI
 from urllib.parse import urlencode
 from typing import Union, List
-from src.llm import llm, embedding
 # Lock for synchronizing file access
+from src.llm import LLM
+llm = LLM.get_instance()
+
+embedding = LLM.get_embedding()
 file_lock = threading.Lock()
 
 embedding = OpenAIEmbeddings()

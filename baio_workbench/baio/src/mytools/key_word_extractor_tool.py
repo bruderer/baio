@@ -1,7 +1,9 @@
 from langchain.chains import create_extraction_chain
 from langchain.chat_models import ChatOpenAI
-from src.llm import llm35
-# llm35 = ChatOpenAI(temperature=0, model_name="gpt-3.5-turbo-0613")
+from src.llm import LLM
+
+llm35 = LLM.get_instance('gpt-3.5-turbo')
+
 class NaturalLanguageExtractors:
     """This class contains methods to extract certain information in a structured manner from natural language."""
 

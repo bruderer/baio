@@ -3,9 +3,8 @@ import streamlit as st
 from st_app.file_manager import FileManager
 from langchain.callbacks import get_openai_callback
 from st_app.helper_functions import save_uploaded_file
-from src.llm import initialize_llm, get_llm
-
-
+from src.llm import LLM
+    
 UPLOAD_DIR = "./baio/data/uploaded/"
 DOWNLOAD_DIR = './baio/data/output/'
 
@@ -28,7 +27,7 @@ def read_txt_file(path):
         return file.read()
         
 def app():
-    st.sidebar.markdown('''# PROVIDE AN OpenAI API KEY:''')
+    st.sidebar.markdown('''# PROVIDE AN OpenAI API KEY Xß:''')
 
     banner_image = "./baio/data/persistant_files/baio_logo.png"  
     st.image(banner_image, use_column_width=True)  
@@ -44,8 +43,7 @@ def app():
     # Check if the "Reinitialize LLM" button is clicked or if the llm is not in session state
     if st.sidebar.button('Reinitialize LLM') or 'llm' not in st.session_state:
         if openai_api_key:
-            initialize_llm(selected_model, openai_api_key)  # Pass the API key here
-            st.session_state['llm'] = get_llm()  # Retrieve with getter function
+            LLM.initialize(openai_api_key=openai_api_key, selected_model=selected_model)
             st.sidebar.success(f'LLM reinitialized with selected model!')  # Show success message in the sidebar
         else:
             st.sidebar.error('Please provide an OpenAI API key.')  # Show error message in the sidebar
@@ -216,7 +214,7 @@ def app():
                             st.info(f"Total cost is: {cb.total_cost} USD")
                             st.write(f"Your generated file is below:")             
                         except:
-                            st.write('Something went wrong, please try to reforumulate your question')
+                            st.write('Something went wrong, please try to reformulate your question')
                 if reset_memory:
                     ncbi_agent.memory.clear()  
             file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)

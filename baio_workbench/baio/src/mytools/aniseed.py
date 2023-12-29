@@ -12,7 +12,10 @@ from src.non_llm_tools.utilities import Utils, JSONUtils
 from langchain.vectorstores import FAISS
 from langchain.tools import tool
 from langchain_experimental.agents.agent_toolkits import create_python_agent
-from src.llm import llm
+from src.llm import LLM
+
+llm = LLM.get_instance()
+
 
 embedding = OpenAIEmbeddings()
 

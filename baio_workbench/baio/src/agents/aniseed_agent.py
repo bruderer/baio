@@ -11,7 +11,8 @@ from langchain_experimental.tools.python.tool import PythonREPLTool
 from src.mytools.go_tool import go_nl_query_tool
 from src.mytools.aniseed import aniseed_tool
 from langchain.agents import initialize_agent
-from src.llm import llm 
+from src.llm import LLM
+llm = LLM.get_instance() 
 
 ###Agent prompt
 prefix = """Have a conversation with a scientist, answering the following questions as best you can.

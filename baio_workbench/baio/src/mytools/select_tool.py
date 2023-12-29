@@ -4,13 +4,15 @@ from typing import Optional
 from pydantic import BaseModel, Field
 from typing import Optional
 from src.non_llm_tools.utilities import log_question_uuid_json
-from src.llm import llm
 from langchain.prompts import ChatPromptTemplate
 from langchain.chains.openai_functions import (
     create_structured_output_runnable,
 )
 from pydantic import BaseModel, Field
 from typing import Callable, Optional
+from src.llm import LLM
+
+llm = LLM.get_instance()
 
 class MyTool(BaseModel):
     name: str = Field(
@@ -36,7 +38,7 @@ class ToolSelector(BaseModel):
     
     
 def select_best_fitting_tool(question: str, tools: list):
-    """FUNCTION to select tool to answer user questtions"""
+    """FUNCTION to select tool to answer user questions"""
     BLAST_structured_output_prompt = ChatPromptTemplate.from_messages(
         [
             (

@@ -8,7 +8,9 @@ from langchain.agents import Tool
 from langchain_experimental.tools.python.tool import PythonREPLTool
 from src.mytools.go_tool import go_file_tool
 from langchain.agents import initialize_agent
-from src.llm import llm 
+from src.llm import LLM
+
+llm = LLM.get_instance()
 
 
 

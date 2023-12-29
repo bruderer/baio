@@ -5,7 +5,8 @@ from langchain.agents import AgentType
 from langchain_experimental.agents import create_pandas_dataframe_agent
 import pandas as pd
 
-from src.llm import llm
+from src.llm import LLM
+llm = LLM.get_instance() 
 
 
 def csv_agent_creator(path: str):

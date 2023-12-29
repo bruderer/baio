@@ -10,11 +10,11 @@ from src.mytools.select_tool import select_best_fitting_tool, MyTool
 from src.mytools.eutils_tool import eutils_tool
 from src.mytools.BLAST_structured_output import blast_tool
 from src.mytools.BLAT_structured_output import BLAT_tool
-from src.llm import llm
+from src.llm import LLM
 import os
 from langchain.chat_models import ChatOpenAI
 
-
+llm = LLM.get_instance()
 # ###Agent prompt
 # prefix = """Have a conversation with a scientist, answering the following questions as best you can.
 # ALWAYS PASS THE FULL USER QUESTION INTO THE TOOLs
@@ -76,7 +76,7 @@ tools = [
     MyTool(
         name="BLAT_tool",
         func=BLAT_tool,
-        description="Use for questions sucha s 'Align the DNA sequence to the human:ATTCGCC...; With this tool you have access to the ucsc genome data base. It can find where DNA sequences are aligned on the organisms genome, exact positions etc. ",
+        description="Use for questions such s 'Align the DNA sequence to the human:ATTCGCC...; With this tool you have access to the ucsc genome data base. It can find where DNA sequences are aligned on the organisms genome, exact positions etc. ",
 ),
     ]
 
@@ -92,4 +92,5 @@ def ncbi_agent(question: str):
     function_to_call = function_mapping.get(selected_tool.name)
     print(f'Selected tool: {selected_tool.name}')
     answer = function_to_call(question)
+    print(answer)
     return answer
