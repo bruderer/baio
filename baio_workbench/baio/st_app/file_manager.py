@@ -35,7 +35,7 @@ class FileManager:
             st.image(file_path)
 
         # Preview for text files
-        elif file_extension in ['.txt', '.md', '.log']:
+        elif file_extension in ['.txt', '.md', '.log', '.gb']:
             with open(file_path, 'r') as f:
                 st.text(f.read())
 

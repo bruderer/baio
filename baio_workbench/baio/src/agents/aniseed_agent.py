@@ -12,6 +12,9 @@ from src.mytools.go_tool import go_nl_query_tool
 from src.mytools.aniseed import aniseed_tool
 from langchain.agents import initialize_agent
 from src.llm import LLM
+from src.mytools.select_tool import select_best_fitting_tool, MyTool
+
+
 llm = LLM.get_instance() 
 
 ###Agent prompt
@@ -47,17 +50,19 @@ tools = [
 
     ]
 
+function_mapping = {
+    "Aniseedtool": aniseed_tool,
+    "mygenetool": go_nl_query_tool,
+    "pythonrepl": PythonREPLTool().run
+}
 
-prompt = ZeroShotAgent.create_prompt(
-    tools,
-    prefix=prefix,
-    suffix=suffix,
-    input_variables=["input", "chat_history", "agent_scratchpad"],
-)
 
-memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
 
-llm_chain = LLMChain(llm=llm, prompt=prompt)
-
-aniseed_go_agent = initialize_agent(tools, llm, agent=AgentType.CONVERSATIONAL_REACT_DESCRIPTION, verbose=True, memory=memory)
-# aniseed_go_agent.run('What genes are expressed between stage 1 and 3 in ciona robusta?')
+def aniseed_go_agent(question: str):
+    print('In Aniseed agent...\nSelecting tool...')
+    selected_tool = select_best_fitting_tool(question, tools)
+    function_to_call = function_mapping.get(selected_tool.name)
+    print(f'Selected tool: {selected_tool.name}')
+    answer = function_to_call(question)
+    print(answer)
+    return answer

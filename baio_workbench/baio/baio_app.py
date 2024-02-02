@@ -4,7 +4,6 @@ from st_app.file_manager import FileManager
 from langchain.callbacks import get_openai_callback
 from st_app.helper_functions import save_uploaded_file
 from src.llm import LLM
-    
 UPLOAD_DIR = "./baio/data/uploaded/"
 DOWNLOAD_DIR = './baio/data/output/'
 
@@ -55,10 +54,12 @@ def app():
         go_file_annotator = 'Local GO agent'
         file_chatter = 'Local file agent'
         ncbi = 'NCBI'
-        selected_agent = st.radio("Choose an agent:", ["BaIO agent", go_file_annotator, file_chatter, ncbi])
+        local_genome_explorer = 'Local genome explorer'
+        selected_agent = st.radio("Choose an agent:", ["BaIO agent", go_file_annotator, file_chatter, ncbi, local_genome_explorer])
         from src.mytools.go_tool import go_file_tool
         from src.agents.ncbi_agent import ncbi_agent
         from src.agents.aniseed_agent import aniseed_go_agent
+        from src.agents.local_genome_agent import genome_explorer
         from src.agents.file_annotator_agent import file_annotator_agent
         from src.mytools.csv_chatter_tool import filechatter_instructions
         from src.agents.csv_chatter_agent import csv_agent_creator
@@ -79,7 +80,7 @@ def app():
                 with st.expander("Instructions"): st.markdown(read_txt_file(aniseed_instruction_txt_path))
                 question = st.text_area('Enter text for ANISEED agent:', 'Example: What genes are expressed between stage 1 and 3 in ciona robusta?')
                 submitted = st.form_submit_button('Submit')
-                reset_memory = st.form_submit_button('Clear chat history')
+                # reset_memory = st.form_submit_button('Clear chat history')
 
                 # st.write(path_aniseed_out, path_go_nl_out)
                 # Add the file paths to the file_paths dictionary
@@ -88,9 +89,10 @@ def app():
                     with get_openai_callback() as cb:
                         try:
                             result = aniseed_go_agent(question)
-                            st.info(result['output'])
+                            # st.info(result['output'])
                             st.info(f"Total cost is: {cb.total_cost} USD")
-                            st.write(f"Your generated file is below:")
+                            st.write("Files generated:\n" + "\n".join(result))
+                            path_aniseed_out = 'aniseed/aniseed_out_0.csv'
                             #change: output last tool used by agent in order to select previeved file
                             if 'GO' in str(result['chat_history'][1]) or 'Gene Ontology' in str(result['chat_history'][1]) or 'entrez' in str(result['chat_history'][1]) or 'ensembl' in str(result['chat_history'][1]):
                                 file_manager_aniseed.preview_file(path_go_nl_out)
@@ -101,12 +103,48 @@ def app():
                                 
                         except:
                             st.write('Something went wrong, please try to reforumulate your question')
-                if reset_memory:
-                    aniseed_go_agent.memory.clear()  
+                # if reset_memory:
+                #     aniseed_go_agent.memory.clear()  
             file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
             file_manager.run()                                     
 
+        # ######
+        # ######      GENOME AGENT
+        # ######
+        if selected_agent == 'Local genome explorer':
+            with st.form('form_for_genome_explorer'):
+            
+            # genome_file_annotator_file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
+                st.write("Local genome explorer")                
 
+                # # Upload genome file
+                # genome_file = st.file_uploader("Upload a genome file", type=['gff', 'gff'])
+                # if genome_file is not None:
+                #     # Process the uploaded genome file
+                #     pass
+
+                # # Upload fasta file
+                # fasta_file = st.file_uploader("Upload a fasta file", type=['fa', 'fasta'])
+                # if fasta_file is not None:
+                #     # Process the uploaded fasta file
+                #     pass
+
+                # Select 'Ciona intestinalis nordea'
+                options = ['Ciona intestinalis nordea']
+                selected_option = st.selectbox('Or select an option:', options)
+                ###TO DO: implement logic for genome upload
+                if selected_option == 'Ciona intestinalis nordea':
+                    genome_fasta_path = './baio/data/persistant_files/genome/primary_assembly_BY_260923_CI_02.fa'
+                    genome_db_path = './baio/data/persistant_files/genome/gff.db'
+                    pass       
+                output_dir = './baio/data/output/genome_explorer'
+
+                identifier = st.text_area('Enter a gene identifier', 'KY.Chr2.2230')
+                submitted = st.form_submit_button('Submit')
+                if submitted:            
+                    genome_explorer(identifier, genome_db_path, genome_fasta_path, output_dir)
+            file_manager = FileManager("./baio/data/output/genome_explorer", "./baio/data/upload/")
+            file_manager.run()        
         ####
         ####    FILE GO ANNOTATOR
         ####

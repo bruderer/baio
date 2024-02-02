@@ -18,22 +18,26 @@ class Utils:
     @staticmethod
     def extract_python_code(text: str) -> str:
         start_marker = "```python"
-        end_marker = "```"
-        
+        end_marker = "```"    
         code_start = text.find(start_marker) + len(start_marker)
         code_end = text.find(end_marker, code_start)
-        
         if code_start == -1 or code_end == -1:
             return "No code found!"
-        
         extracted_code = text[code_start:code_end].strip()
         return extracted_code
-
+    @staticmethod
+    def execute_code_2(input_):
+        code = Utils.extract_python_code(input_)
+        print(f"\033[1;35;40m {code} \033[0;37;40m")
+        exec(code)
+        
+        
     @staticmethod
     def execute_code(result: dict):
         code = Utils.extract_python_code(result['answer'])
         print(code)
         exec(code)
+
     
     @staticmethod
     def flatten_aniseed_gene_list(input_file_path: str, input_file_gene_name_column:str) -> list:
@@ -81,40 +85,32 @@ class Utils:
 class JSONUtils:
     """
     A utility class for extracting key structures from a JSON file.
-    
     Attributes:
     - path (str): Path to the JSON file.
     - data: Placeholder for loaded data. Initialized to None.
-    
     Methods:
     - extract_keys_from_obj: Recursively extract keys and their types from an object (dictionary or list).
     - extract_keys: Load JSON from a file and extract its key structure.
     """
-
     def __init__(self, path: str):
         """
-        Initializes the JSONUtils object with a path to a JSON file.
-        
+        Initializes the JSONUtils object with a path to a JSON file.   
         Parameters:
         - path (str): Path to the JSON file.
         """
         self.path = path
         self.data = None
-
     def extract_keys_from_obj(self, obj):
         """
         Recursively extract keys and their types from an object, which can be a dictionary or list.
-        The goal is to obtain the main structure of any JSON content.
-        
+        The goal is to obtain the main structure of any JSON content.    
         Parameters:
-        - obj (dict/list): A dictionary or list object from JSON content.
-        
+        - obj (dict/list): A dictionary or list object from JSON content.     
         Returns:
         - dict: Dictionary containing base type and key types and their names.
         """
         keys_dict = {}
-        base_type = type(obj).__name__
-        
+        base_type = type(obj).__name__       
         if isinstance(obj, dict):
             for key, value in obj.items():
                 if isinstance(value, dict):
@@ -131,17 +127,14 @@ class JSONUtils:
             if all(isinstance(item, dict) for item in obj):  # Assuming homogeneous list items
                 for item in obj:
                     for k, v in self.extract_keys_from_obj(item).items():
-                        keys_dict[k] = v
-                        
+                        keys_dict[k] = v     
         return {
             'base_type': base_type,
             'key_types': keys_dict
         }
-
     def extract_keys(self):
         """
         Loads a JSON file, given the path provided during object instantiation, and extracts its key structure.
-        
         Returns:
         - dict: Dictionary containing the base type and key types of the JSON content.
         """

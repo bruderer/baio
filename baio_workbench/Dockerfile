@@ -16,7 +16,7 @@ WORKDIR /usr/src/app
 
 # Copy the requirements.txt file and install Python requirements
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 # Copy the 'baio' directory into the container
 COPY baio baio/
@@ -29,4 +29,5 @@ RUN chmod +x ./startup.sh
 EXPOSE 8501
 
 # Run the shell script when the container launches
-CMD ["./startup.sh"]
+# CMD ["./startup.sh"]
+CMD tail -f /dev/null
