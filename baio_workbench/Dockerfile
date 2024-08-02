@@ -29,5 +29,5 @@ RUN chmod +x ./startup.sh
 EXPOSE 8501
 
 # Run the shell script when the container launches
-# CMD ["./startup.sh"]
-CMD tail -f /dev/null
+CMD ["./startup.sh"]
+#CMD tail -f /dev/null

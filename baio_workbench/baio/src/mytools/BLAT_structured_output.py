@@ -90,8 +90,9 @@ class AnswerExtractor:
         You have to answer the question:{question} as clear and short as possible, be factual!\n\
         Example question: Align the DNA sequence to the human genome:ATTCTGCCTTTAGTAATTTGATGACAGAGACTTCTTGGGAACCACAGCCAGGGAGCCACCCTTTACTCCACCAACAGGTGGCTTATATCCAATCTGAGAAAGAAAGAAAAAAAAAAAAGTATTTCTCT"
         Output to find answer in: "track": "blat", "genome": "hg38", "fields": ["matches", "misMatches", "repMatches", "nCount", "qNumInsert", "qBaseInsert", "tNumInsert", "tBaseInsert", "strand", "qName", "qSize", "qStart", "qEnd", "tName", "tSize", "tStart", "tEnd", "blockCount", "blockSizes", "qStarts", "tStarts"], "blat": [[128, 0, 0, 0, 0, 0, 0, 0, "+", "YourSeq", 128, 0, 128, "chr15", 101991189, 91950804, 91950932, 1, "128", "0", "91950804"], [31, 0, 0, 0, 1, 54, 1, 73, "-", "YourSeq", 128, 33, 118, "chr6", 170805979, 48013377, 48013481, 2, "14,17", "10,78", "48013377,48013464"], [29, 0, 0, 0, 0, 0, 1, 114, "-", "YourSeq", 128, 89, 118, "chr9", 138394717, 125385023, 125385166, 2, "13,16", "10,23", "125385023,125385150"], [26, 1, 0, 0, 0, 0, 1, 2, "+", "YourSeq", 128, 1, 28, "chr17", 83257441, 62760282, 62760311, 2, "5,22", "1,6", "62760282,62760289"], [24, 3, 0, 0, 0, 0, 0, 0, "-", "YourSeq", 128, 54, 81, "chr11_KI270832v1_alt", 210133, 136044, 136071, 1, "27", "47", "136044"], [20, 0, 0, 0, 0, 0, 0, 0, "+", "YourSeq", 128, 106, 126, "chr2", 242193529, 99136832, 99136852, 1, "20", "106", "99136832"]]\
-        Answer: chr15:91950805-91950932\n\
-        Based on the information given here:\n\
+        Find the tStart and tEnd fields, be sure to use the exact same integers as in the output. Always use the best matches, do not give more than 3 examples if there are multiple matches\
+        Answer: chr15:91950804-91950932\n\
+        Based on the information given here \n\
         {context}
         """
         self.eutils_CHAIN_PROMPT = PromptTemplate(input_variables=["context", "question"], template=template_api_eutils)
@@ -290,7 +291,7 @@ def BLAT_tool(question: str):
     """BLAT TOOL, use this tool if you need to BLAT a dna sequence on the BLAT data base on ncbi"""
     print('Executing: BLAT Tool')
     log_file_path='/usr/src/app/baio/data/output/BLAT/logfile.json'
-    file_path='/usr/src/app/baio/data/output/BLAT/'
+    file_path='/usr/src/app/baio/data/output/BLAT/files/'
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
     #generate api call

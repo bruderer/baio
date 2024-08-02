@@ -22,3 +22,4 @@ nano baio
 sleep 3
 open http://localhost:8501
 
+docker rmi baio:0.0.4 noahbruderer/baio:0.0.4

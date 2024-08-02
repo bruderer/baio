@@ -78,3 +78,20 @@ class OutputCapture:
     def get_value(self):
         return self.buffer.getvalue()
 
+
+import os
+import shutil
+import gffutils
+
+def genome_db_builder(gft_file, genome_fasta, genome_name):
+    directory = f'./baio/data/persistant_files/genome/{genome_name}'
+    db_path = os.path.join(directory, f'{genome_name}.db')
+
+    # Ensure the directory exists
+    os.makedirs(directory, exist_ok=True)
+
+    # Create the database
+    db = gffutils.create_db(gft_file, db_path)
+
+    # Move the FASTA file to the directory
+    shutil.move(genome_fasta, directory)

@@ -4,8 +4,6 @@ scipy==1.11.3
 biopython==1.81
 swig==4.1.1
 swalign==0.3.7
-scanpy==1.9.6
-vireo==0.15.1
 kaleido==0.2.1
 plotly==5.18.0
 langchain
@@ -29,3 +27,5 @@ mygene==3.2.2
 sentence-transformers==2.2.2
 faiss-cpu==1.7.4
 xmltodict
+gffutils
+

@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from st_app.file_manager import FileManager
 from langchain.callbacks import get_openai_callback
-from st_app.helper_functions import save_uploaded_file
+from st_app.helper_functions import save_uploaded_file, genome_db_builder
 from src.llm import LLM
 UPLOAD_DIR = "./baio/data/uploaded/"
 DOWNLOAD_DIR = './baio/data/output/'
@@ -26,7 +26,7 @@ def read_txt_file(path):
         return file.read()
         
 def app():
-    st.sidebar.markdown('''# PROVIDE AN OpenAI API KEY Xß:''')
+    st.sidebar.markdown('''# PROVIDE AN OpenAI API KEY:''')
 
     banner_image = "./baio/data/persistant_files/baio_logo.png"  
     st.image(banner_image, use_column_width=True)  
@@ -59,7 +59,7 @@ def app():
         from src.mytools.go_tool import go_file_tool
         from src.agents.ncbi_agent import ncbi_agent
         from src.agents.aniseed_agent import aniseed_go_agent
-        from src.agents.local_genome_agent import genome_explorer
+        from src.non_llm_tools.genome_explorer import genome_explorer
         from src.agents.file_annotator_agent import file_annotator_agent
         from src.mytools.csv_chatter_tool import filechatter_instructions
         from src.agents.csv_chatter_agent import csv_agent_creator
@@ -113,36 +113,52 @@ def app():
         # ######
         if selected_agent == 'Local genome explorer':
             with st.form('form_for_genome_explorer'):
-            
-            # genome_file_annotator_file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
-                st.write("Local genome explorer")                
+                st.write("Local genome explorer")       
+                with st.expander("UPLOAD YOUR GENOME"):         
+                    genome_name = st.text_input("Enter the name of the genome")
+                    col1, col2 = st.columns(2)
+                    if genome_name:
+                        genome_dir = os.path.join(UPLOAD_DIR, genome_name)
+                        os.makedirs(genome_dir, exist_ok=True)
+                    with col1:
+                        uploaded_file_1 = st.file_uploader("Upload your genome gft below:", type=["gft"])
 
-                # # Upload genome file
-                # genome_file = st.file_uploader("Upload a genome file", type=['gff', 'gff'])
-                # if genome_file is not None:
-                #     # Process the uploaded genome file
-                #     pass
+                    with col2:
+                        uploaded_file_2 = st.file_uploader("Upload your genome fasta file below:", type=["fasta", "fa"])
+                    if uploaded_file_1:
+                        st.write("You've uploaded a gft file!")
+                        save_uploaded_file(uploaded_file_1, genome_dir)
+                    if uploaded_file_2:
+                        st.write("You've uploaded a fasta file!")
+                        save_uploaded_file(uploaded_file_2, genome_dir)
+                                
+                    if uploaded_file_1 and uploaded_file_2:
+                        gft_file_path = os.path.join(genome_dir, uploaded_file_1.name)
+                        fasta_file_path = os.path.join(genome_dir, uploaded_file_2.name)
+                        genome_db_builder(gft_file_path, fasta_file_path, genome_name)
 
-                # # Upload fasta file
-                # fasta_file = st.file_uploader("Upload a fasta file", type=['fa', 'fasta'])
-                # if fasta_file is not None:
-                #     # Process the uploaded fasta file
-                #     pass
+                # Directory where the genomes are stored
+                genome_dir = './baio/data/persistant_files/genome'
 
-                # Select 'Ciona intestinalis nordea'
-                options = ['Ciona intestinalis nordea']
-                selected_option = st.selectbox('Or select an option:', options)
+                # Get a list of all files in the genome directory
+                genome_dirs = [d for d in os.listdir(genome_dir) if os.path.isdir(os.path.join(genome_dir, d))]
+                options = genome_dirs
+                selected_option = st.selectbox('Select an option:', options)
                 ###TO DO: implement logic for genome upload
-                if selected_option == 'Ciona intestinalis nordea':
-                    genome_fasta_path = './baio/data/persistant_files/genome/primary_assembly_BY_260923_CI_02.fa'
-                    genome_db_path = './baio/data/persistant_files/genome/gff.db'
-                    pass       
+                # If the selected option is a file in the genome directory, set the paths to the selected file
+                if selected_option in genome_dirs:
+                    selected_dir = os.path.join(genome_dir, selected_option)
+                    genome_fasta_path = next(os.path.join(selected_dir, f) for f in os.listdir(selected_dir) if f.endswith('.fa') or f.endswith('.fasta'))
+                    genome_db_path = next(os.path.join(selected_dir, f) for f in os.listdir(selected_dir) if f.endswith('.db'))
+
+                    
                 output_dir = './baio/data/output/genome_explorer'
 
-                identifier = st.text_area('Enter a gene identifier', 'KY.Chr2.2230')
+                identifier = st.text_area('Enter a gene identifiers (comma separated)', 'KY.Chr2.2230')
                 submitted = st.form_submit_button('Submit')
                 if submitted:            
-                    genome_explorer(identifier, genome_db_path, genome_fasta_path, output_dir)
+                    genome_explorer([identifier], genome_db_path, genome_fasta_path, output_dir)
+                    st.success("The gene has been processed successfully.")
             file_manager = FileManager("./baio/data/output/genome_explorer", "./baio/data/upload/")
             file_manager.run()        
         ####

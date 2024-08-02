@@ -1,10 +1,10 @@
 import os
 import streamlit as st
-import streamlit as st
 from langchain.callbacks import get_openai_callback
 import os
 import base64
 import pandas as pd
+import shutil
 
 
 
@@ -62,14 +62,18 @@ class FileManager:
             return False
         
     def file_download_button(self, path, label="Download"):
-        """Generate a button to download the file."""
-        file_path = path
-        filename = os.path.basename(file_path)  # extract the filename
-        with open(file_path, "rb") as f:
-            bytes_data = f.read()
-        b64 = base64.b64encode(bytes_data).decode()  # bytes to base64 string
-        href = f'<a href="data:file/octet-stream;base64,{b64}" download="{filename}" style="display:inline-block;padding:0.25em 0.5em;background:#4CAF50;color:white;border-radius:3px;text-decoration:none">{label}</a>'
-        return href
+        """Generate a button to download the file or directory."""
+        if os.path.isfile(path):
+            filename = os.path.basename(path)  # extract the filename
+            with open(path, "rb") as f:
+                bytes_data = f.read()
+            b64 = base64.b64encode(bytes_data).decode()  # bytes to base64 string
+            href = f'<a href="data:file/octet-stream;base64,{b64}" download="{filename}" style="display:inline-block;padding:0.25em 0.5em;background:#4CAF50;color:white;border-radius:3px;text-decoration:none">{label}</a>'
+
+        else:  # path is a directory
+            filename = os.path.basename(path) + '.zip'
+            href = f'<a href="#" onclick="downloadDirectory(\'{path}\', \'{filename}\')" style="display:inline-block;padding:0.25em 0.5em;background:#4CAF50;color:white;border-radius:3px;text-decoration:none">{label}</a>'
+            return href
     def select_file_preview_true(self, key):
         files_with_paths = self.list_all_files()        
         # Strip the directories from the file paths for display purposes
@@ -121,37 +125,39 @@ class FileManager:
             return selected_file  # This will return the selected file regardless of whether the expander is used
         else:
             st.error("No files found or there's an error accessing the directories.")
+    def list_all_dirs(self):
+        all_dirs = []
+        for directory in self.directories:
+            for subdir, dirs, files in os.walk(directory):
+                all_dirs.append(subdir)
+        return all_dirs
+
+    def list_files_in_dir(self, directory):
+        return [os.path.join(directory, file) for file in os.listdir(directory) if os.path.isfile(os.path.join(directory, file))]
              
     def run(self):
-        files_with_paths = self.list_all_files()        
-        # Strip the directories from the file paths for display purposes
-        files_display = [file_path.replace(d, '') for d in self.directories for file_path in files_with_paths if file_path.startswith(d)]
-        # Add a "None" option as the first item in the list
-        files_display.insert(0, "Select a file")
-        st.write('# FILE MANAGEMENT SYSTEM')
-        if files_with_paths:
-            # st.write(f"Found {len(files_with_paths) - 1} files:")  # Subtract 1 for the "None" option
-            # Select a file from the list with paths stripped for display
-            selected_file_display = st.selectbox("Select a file", files_display, index=0)
+        all_dirs = self.list_all_dirs()
+        selected_dir = st.selectbox("Select a directory", all_dirs, index=0)
 
-            # Get the full path from the display selection if it's not "None"
-            selected_file = next((f for f in files_with_paths if f.endswith(selected_file_display)), "") if selected_file_display != "None" else ""
+        if selected_dir:
+            # Show download button for the directory
+            st.markdown(self.file_download_button(selected_dir, "Download Directory"), unsafe_allow_html=True)
+
+            files_in_dir = self.list_files_in_dir(selected_dir)
+            selected_file = st.selectbox("Select a file", files_in_dir, index=0)
 
             if selected_file:
-                # Use an expander to show the file preview
                 with st.expander("Preview File", expanded=False):
                     self.preview_file(selected_file)
 
-                # Show download button
-                st.markdown(self.file_download_button(selected_file), unsafe_allow_html=True)
-                
-                # Add button to delete the file
+                # Show download and delete buttons for the file
+                st.markdown(self.file_download_button(selected_file, "Download File"), unsafe_allow_html=True)
+
                 if st.button(f"Delete {os.path.basename(selected_file)}"):
                     if self.delete_file(selected_file):
                         st.experimental_rerun()
         else:
-            st.error("No files found or there's an error accessing the directories.")
-    
+            st.error("No directories found or there's an error accessing the directories.")
 def main():
     st.title("File Management App")
     file_manager = FileManager("/home/baio/data/output/", "/home/baio/data/upload/")

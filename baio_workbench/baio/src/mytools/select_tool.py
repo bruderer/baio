@@ -52,8 +52,11 @@ def select_best_fitting_tool(question: str, tools: list):
             ("human", "Tip: Make sure to answer in the correct format"),
         ]
     )
+    print('boop')
     runnable = create_structured_output_runnable(ToolSelector, llm, BLAST_structured_output_prompt)
     #retrieve relevant info to question
     #keep top 3 hits
+    print(runnable)
     selected_tool = runnable.invoke({"input": f"{question} based on {tools}"})
+    print(f'\033[92mselected tool is: {selected_tool}\033[0m')
     return selected_tool

@@ -250,10 +250,7 @@ def make_api_call(request_data: Union[EutilsAPIRequest, EfetchRequest]):
     default_method = "GET"
     # # Prepare the query string
     # query_params = request_data.dict(exclude={"url", "method", "headers", "body", "response_format", "parse_keys"})
-    # if request_data.db == "omim":
-    #     query_params = request_data.dict(exclude={"url", "method", "headers", "body", "response_format", "parse_keys", "retmod"})
-    #     if request_data.id != '' and request_data.id is not None:
-    #         request_data.url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
+
     if isinstance(request_data, EfetchRequest):
         if request_data.db == "gene":
             print('FETCHING')
@@ -263,19 +260,24 @@ def make_api_call(request_data: Union[EutilsAPIRequest, EfetchRequest]):
             else:
                     id_s = str(request_data.id)
             query_params = request_data.dict(include={"db", "retmax","retmode"})
-            # query_params = {
-            # 'db': request_data.db,
-            # 'retmax': request_data.retmax,
-            # 'retmode': request_data.retmode,
-            # # Add other parameters here if needed
-            # }
-            # print(query_params)            
-            # print(id_s)
             encoded_query_string = urlencode(query_params)
             query_string = f"{encoded_query_string}&id={id_s}"
-            # encoded_query_string = urlencode(query_params)
             request_data.full_search_url = f"{request_data.url}?{query_string}"
-    print(f'Requesting: {request_data.full_search_url}')
+            
+        if request_data.db == "omim":
+            print('FETCHIN omim results')
+            if isinstance(request_data.id, list):
+                    id_s = ','.join(map(str, request_data.id))  # Convert each element to string and join
+            else:
+                    id_s = str(request_data.id)
+            query_params = request_data.dict(include={"db", "retmax","retmode"})
+            encoded_query_string = urlencode(query_params)            
+            # query_params = request_data.dict(exclude={"url", "method", "headers", "body", "response_format", "parse_keys", "retmod"})
+            if request_data.id != '' and request_data.id is not None:
+                request_data.url = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi'
+            query_string = f"{encoded_query_string}&id={id_s}"
+            request_data.full_search_url = f"{request_data.url}?{query_string}"
+    print(f'Requesting x: {request_data.full_search_url}')
 
     req = urllib.request.Request(request_data.full_search_url, headers=default_headers, method=default_method)
     try:
@@ -317,8 +319,8 @@ def eutils_tool(question: str):
     print('Running: Eutils tool')
     max_ids = 5
     file_name = None  # Initialize file_name variable
-    file_path = './baio/data/output/eutils/results/files/'
-    log_file_path = './baio/data/output/eutils/results/log_file/eutils_log.json'
+    log_file_path='/usr/src/app/baio/data/output/eutils/results/log_file/eutils_log.json'
+    file_path='/usr/src/app/baio/data/output/eutils/results/files/'
     # Check if the directories for file_path and log_file_path exist, if not, create them
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
@@ -339,6 +341,7 @@ def eutils_tool(question: str):
         efetch_request = EfetchRequest(db=api_call_nr_1.db,
                                             id=id_list,
                                             retmode=api_call_nr_1.retmode)
+        print(f'efetch request: {efetch_request}')
         efetch_response = make_api_call(efetch_request)
         efetch_response_list.append(efetch_response)            
         try:
@@ -426,7 +429,6 @@ def eutils_tool(question: str):
         with open(log_file_path, 'w') as file:
             json.dump(data, file, indent=4)  
     # Call the logging function with the full file path
-    print(result['answer'])
     print('EUTILS Tool done')
     return result['answer']
 

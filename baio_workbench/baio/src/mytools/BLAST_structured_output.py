@@ -211,7 +211,8 @@ class BLASTAnswerExtractor:
         self.memory = ConversationBufferMemory(memory_key='chat_history', return_messages=True)
         BLAST_file_answer_extractor_prompt = """
         You have to answer the question:{question} as clear and short as possible manner, be factual!\n\
-        For any kind of BLAST results use try to use the hit with the best identity score to answer the question, if it is not possible move to the next one. \n\
+        If you are asked what organism a specific sequence belongs to check in the 'Hit_def' fields, if you find a synthetic construc or predicted etc. move to the next entery and look of an orgnaism name\n\
+        Try to use the hits with the best identity score to answer the question, if it is not possible move to the next one. \n\
         Be clear, and if organism names are present in ANY of the result please use them in the answer, do not make up stuff and mention how relevant the found information is (based on the identity scores)
         Based on the information given here:\n\
         {context}
@@ -234,7 +235,7 @@ class BLASTAnswerExtractor:
             print(temp_file_path)
             loader = TextLoader(temp_file_path)
         else:
-            print(f"Temporary file not found: {temp_file_path}")   
+            raise FileNotFoundError(f"Temporary file not found: {temp_file_path}")  
         # loader = TextLoader(temp_file_path)
         documents = loader.load()
         os.remove(temp_file_path)
@@ -279,7 +280,9 @@ def BLAST_answer(log_file_path, question, current_uuid, n_lignes: int):
 def blast_tool(question: str):
     """BLAST TOOL, use this tool if you need to blast a dna sequence on the blast data base on ncbi"""
     log_file_path='/usr/src/app/baio/data/output/BLAST/logfile.json'
-    save_file_path='/usr/src/app/baio/data/output/BLAST/'
+    save_file_path='/usr/src/app/baio/data/output/BLAST/files/'
+    os.makedirs(os.path.dirname(save_file_path), exist_ok=True)
+    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
     #generate api call
     query_request = BLAST_api_query_generator(question)
     print(query_request)
@@ -290,7 +293,7 @@ def blast_tool(question: str):
     BLAST_file_name = fetch_and_save_blast_results(query_request, rid, save_file_path, question, log_file_path)
     #extract answer
     # answer_extractor = BLASTAnswerExtractor()
-    result = BLAST_answer(log_file_path,question, current_uuid, 100)
+    result = BLAST_answer(log_file_path,question, current_uuid, 200)
     # print(result)
     # # Update the log file with the answer for the current UUID
     # print(f'CURRENT ID IS:{current_uuid}\n')
