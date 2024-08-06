@@ -118,26 +118,3 @@ class AniseedAPI:
         if search:
             url += f"&search={search}"
         return url
-
-
-def execute_query(api, query):
-    # Create a dictionary mapping parameter names to their values
-    # print('in execute_query')
-    params = {
-        query.parameter_1_name: query.parameter_1_value,
-        query.parameter_2_name: query.parameter_2_value,
-        query.parameter_3_name: query.parameter_3_value,
-    }
-    # print(f'Params first: {params}')
-    # Remove any parameters that were not filled or are None
-    params = {k: v for k, v in params.items() if v not in [None, "To be filled", ""]}
-    print(params)
-    # print(f'Params second: {params}')
-
-    # Get the required function from the API
-    func = getattr(api, query.required_function)
-    print(func)
-    # print(f'Func: {func}')
-
-    # Call the function with the parameters
-    return func(**params)

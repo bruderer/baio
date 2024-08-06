@@ -120,7 +120,7 @@ def all_regulatory_regions(self, organism_id, search=None):
 """
 
 
-def ANISEED_multistep(question: str, llm, ANISEED_db):
+def ANISEED_multistep(question: str, llm):
     """FUNCTION to write api call for any ANISEED query,"""
     print("Finding the required aniseed api fucntions to answer the question...\n")
     structured_output_prompt = ChatPromptTemplate.from_messages(
@@ -132,7 +132,6 @@ def ANISEED_multistep(question: str, llm, ANISEED_db):
             ),
             (
                 "human",
-                "Use the given format to extract information from the following input:"
                 "You have to decide what functions you need to answer the user question"
                 "You have to make multiple API calls to answer certain user question "
                 "and as an example, if you are asked to find genes"
@@ -140,13 +139,12 @@ def ANISEED_multistep(question: str, llm, ANISEED_db):
                 "range, you would first search all_genes_by_territory and then"
                 "all_genes_by_stage_range, this will give all the information to filter"
                 "later. VERY IMPORTANT: ONLY INPUT THE FUNCTION NAME "
-                "Based on the input below you have to decide if you need one"
+                "Use the given format to extract information from the following input: "
                 "or more API calls: {input}",
             ),
             (
                 "human",
-                "Tip: Make sure to answer in the correct format, make sure to respect "
-                "the format of one function and two parameters and keep the base url",
+                "Tip: Make sure to answer in the correct format, make sure to respect ",
             ),
         ]
     )
@@ -167,7 +165,5 @@ def ANISEED_multistep(question: str, llm, ANISEED_db):
     if one_or_more.functions_to_use_3 not in one_or_more.valid_functions:
         one_or_more.functions_to_use_3 = None
     # retrieve relevant info to question
-    retrieved_docs = ANISEED_db.as_retriever().get_relevant_documents(question)
-    # keep top 3 hits
-    top_3_retrieved_docs = "".join(doc.page_content for doc in retrieved_docs[:3])
-    return one_or_more, top_3_retrieved_docs
+
+    return one_or_more

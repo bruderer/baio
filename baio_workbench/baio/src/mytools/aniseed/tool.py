@@ -3,53 +3,39 @@ import os
 import traceback
 
 import requests
-from langchain.embeddings import OpenAIEmbeddings
-from langchain.tools import tool
-from langchain.vectorstores import FAISS
 
-from baio.src.llm import LLM
 from baio.src.mytools.aniseed import ANISEED_multistep, ANISEED_query_generator
+from baio.src.non_llm_tools import Utils
 
-embedding = OpenAIEmbeddings()
+from . import AniseedJSONExtractor
 
-
-ANISEED_db = FAISS.load_local(
-    "./baio/data/persistant_files/vectorstores/aniseed", embedding
-)
-
-llm = LLM.get_instance()
+# from langchain.tools import tool
 
 
-@tool
-def aniseed_tool(question: str):
+def aniseed_tool(question: str, llm, Aniseed_doc):
     """Takes in a question about any organisms on ANISEED and outputs a dataframe with
     requested information"""
     path_tempjson = "./baio/data/output/aniseed/temp/aniseed_temp.json"
     path_json = "./baio/data/output/aniseed/temp/aniseed_out_{counter}.json"
     path_save_csv = "./baio/data/output/aniseed/aniseed_out_{counter}.csv"
-    multistep, top_3_retrieved_docs = ANISEED_multistep(question, llm, ANISEED_db)
-    print(
-        "[1;32;40m]Functions to be called: "
-        f"{multistep.functions_to_use_1}\n{multistep.functions_to_use_2}\n"
-        f"{multistep.functions_to_use_3}\n"
-    )
 
+    print(f"\nTesting question: {question}")
+    functions_to_call = ANISEED_multistep(question, llm)
+
+    print(f"One_or_more_steps: {functions_to_call.One_or_more_steps}")
+    print(f"Function 1: {functions_to_call.functions_to_use_1}")
+    print(f"Function 2: {functions_to_call.functions_to_use_2}")
+    print(f"Function 3: {functions_to_call.functions_to_use_3}")
+    functions_to_call = [
+        functions_to_call.functions_to_use_1,
+        functions_to_call.functions_to_use_2,
+        functions_to_call.functions_to_use_3,
+    ]
     api_calls = []
-    for function in (
-        multistep.functions_to_use_1,
-        multistep.functions_to_use_2,
-        multistep.functions_to_use_3,
-    ):
-        if function is not None:
-            print(f"\033[1;32;40mAniseed tool is treating: {function} \n")
-
-            api_calls.append(
-                ANISEED_query_generator(question, function, top_3_retrieved_docs, llm)
-            )
-    # print(
-    #     f"Now we have the api calls that have to be executed to obtain the data to "
-    #     "answer the users question:\n"
-    #     + "\n".join([api_call.full_url for api_call in api_calls])
+    functions_to_call = [func for func in functions_to_call if func is not None]
+    for function in functions_to_call:
+        print(f"\033[1;32;40mAniseed tool is treating: {function} \n")
+        api_calls.append(ANISEED_query_generator(question, function, Aniseed_doc, llm))
 
     counter = 0
     aniseed_out_paths = []
@@ -59,7 +45,7 @@ def aniseed_tool(question: str):
         formatted_path_save_csv = path_save_csv.format(counter=counter)
         response = requests.get(api_call.full_url)
         data = response.json()
-        # print(data)
+        print(data)
 
         os.makedirs(os.path.dirname(formatted_path_tempjson), exist_ok=True)
         try:
