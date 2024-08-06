@@ -21,10 +21,10 @@ ANISEED_db = FAISS.load_local(
 def test_ANISEED_multistep_real():
     # Test cases
     test_cases = [
-        # (
-        #     "What genes are expressed in Ciona intestinalis between stage 1 and 10?",
-        #     ["all_genes_by_stage_range"],
-        # ),
+        (
+            "What genes are expressed in Ciona intestinalis between stage 1 and 10?",
+            ["all_genes_by_stage_range"],
+        ),
         # (
         #     "What are the regulatory regions in Ciona intestinalis?",
         #     ["all_regulatory_regions"],
