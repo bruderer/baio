@@ -1,8 +1,9 @@
 from langchain.chains import create_extraction_chain
-from langchain.chat_models import ChatOpenAI
-from src.llm import LLM
 
-llm35 = LLM.get_instance('gpt-3.5-turbo')
+from baio.src.llm import LLM
+
+llm35 = LLM.get_instance("gpt-3.5-turbo")
+
 
 class NaturalLanguageExtractors:
     """This class contains methods to extract certain information in a structured manner from natural language."""
@@ -10,7 +11,7 @@ class NaturalLanguageExtractors:
     def __init__(self, natural_language_string):
         """
         Initialize the extractor with the natural_language_string input by the user.
-        
+
         Parameters:
         natural_language_string (str): The string from which the information has to be extracted.
         """
@@ -27,13 +28,13 @@ class NaturalLanguageExtractors:
             "required": ["gene_names"],
         }
 
-        # Input 
+        # Input
         # Run chain
         chain = create_extraction_chain(schema, llm35)
         result = chain.run(self.natural_language_string)
 
-        #unpacking the list and splitting 
-        gene_list = [gene.strip() for gene in [result[0]['gene_names']][0].split(',')]
+        # unpacking the list and splitting
+        gene_list = [gene.strip() for gene in [result[0]["gene_names"]][0].split(",")]
         return gene_list
 
 

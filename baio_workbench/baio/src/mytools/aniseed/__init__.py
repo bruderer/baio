@@ -1,5 +1,5 @@
 from .aniseed_api import AniseedAPI
-from .aniseed_api_form import ANISEEDQueryRequest, get_query_class
+from .api_form import ANISEEDQueryRequest, get_query_class
 from .json_formater import AniseedJSONExtractor
 from .multi_step_decision import ANISEED_multistep, AniseedStepDecider
 from .query_generator import ANISEED_query_generator

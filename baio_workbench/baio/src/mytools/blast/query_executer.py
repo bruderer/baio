@@ -3,7 +3,8 @@ import time
 from urllib.parse import urlencode
 
 import requests
-from src.non_llm_tools import log_question_uuid_json
+
+from baio.src.non_llm_tools import log_question_uuid_json
 
 from . import BlastQueryRequest
 

@@ -45,3 +45,26 @@
 7. **FAISS Vector Store**: Stores and retrieves relevant context for queries.
 
 ## Data Flow:
+
+## In depth problem 
+- Aniseed has a limited query structure to filter data via API calls
+- Aniseeds API calls require different fields and structures dependant on the method 
+
+Because user questions are often time more granular than API calls, they can require information from multiple API endpoints. Hence a strategic decision of the sequence of API calls must be made. 
+Once the different API calls executed the retrieved information can be filtered to extract the relevant information.
+
+## 1: Decide what methods must be executed
+
+### Method
+
+Structured output step decider: 
+
+- Fields = aniseed api call methods 
+
+Output: Up to 3 api methods that have to be run 
+
+## 2 Fill the API form with appropriate query terms 
+
+Input: Up to 3 API methods that have to be executed; Aniseed doc
+
+Process: Each API method has an **API FORM** class
