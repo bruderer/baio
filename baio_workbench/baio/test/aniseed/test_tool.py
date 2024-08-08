@@ -13,14 +13,6 @@ ANISEED_db = FAISS.load_local(
     "./baio/data/persistant_files/vectorstores/aniseed", embedding
 )
 
-file_path = (
-    "./baio/data/persistant_files/user_manuals/api_documentation/"
-    "aniseed/aniseed_api_doc.txt"
-)
-
-with open(file_path, "r") as file:
-    ANISEED_db = file.read()
-
 
 def test_aniseed_tool():
     # Test question
@@ -34,7 +26,7 @@ def test_aniseed_tool():
     print("\n")
 
     # Call the aniseed_tool function
-    result = aniseed_tool(question, llm, ANISEED_db)
+    result = aniseed_tool(question, llm)
 
     print("\nResult:")
     print(result)
