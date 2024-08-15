@@ -1,0 +1,4 @@
+genes_gene_model,genes_gene_name,genes_unique_gene_id,stage
+KH2012:KH.C11.238,REL; RELA; RELB,Cirobu.g00002055,stage_1
+KH2012:KH.S1159.1,ERG; ETS1; FLI1,Cirobu.g00013672,stage_1
+KH2012:KH.C3.402,IRF4; IRF5; IRF8,Cirobu.g00005580,stage_1
