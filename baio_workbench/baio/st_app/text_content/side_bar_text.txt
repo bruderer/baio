@@ -1,0 +1,13 @@
+**BaIO** is an AI-powered biological database query and file manipulation tool.
+
+# Current version accesses data from:
+
+* [ANISEED](https://www.aniseed.cnrs.fr/)
+* [Ensembl](https://www.ensembl.org/)
+* [UniProt](https://www.uniprot.org/)
+* [NCBI](https://www.ncbi.nlm.nih.gov/)
+
+**Contact Information:** 
+* Contact: [noah.bruderer@uib.no](mailto:noah.bruderer@uib.no)
+* Research team: [Regulation of multipotency, cell fate specification, and cell behavior in the cardiopharyngeal mesoderm](https://www.uib.no/en/michaelsarscentre/141681/christiaen-group)
+* X: [Noah Bruderer](https://twitter.com/NoahBruderer)
