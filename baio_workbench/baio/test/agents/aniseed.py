@@ -1,7 +1,6 @@
 import os
 
 from langchain.chat_models import ChatOpenAI
-from langchain.embeddings import OpenAIEmbeddings
 
 from baio.src.agents.aniseed_agent import (
     aniseed_agent,  # Adjust the import path as needed

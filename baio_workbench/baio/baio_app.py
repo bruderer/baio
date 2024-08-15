@@ -1,61 +1,73 @@
 import os
+from pathlib import Path
 
 import streamlit as st
 from langchain.callbacks import get_openai_callback
-from src.llm import LLM
-from st_app.file_manager import FileManager
-from st_app.helper_functions import genome_db_builder, save_uploaded_file
+from langchain.chat_models import ChatOpenAI
+from langchain.embeddings import OpenAIEmbeddings
 
-UPLOAD_DIR = "./baio/data/uploaded/"
-DOWNLOAD_DIR = "./baio/data/output/"
+from baio.src.llm import LLM
+from baio.st_app import MyAgents
+from baio.st_app.file_manager import FileManager
+from baio.st_app.helper_functions import save_uploaded_file
 
-side_bar_txt_path = "./baio/st_app/text_content/side_bar_text.txt"
-aniseed_instruction_txt_path = (
-    "./baio/st_app/text_content/aniseed_agent_instructions.txt"
-)
+BASE_DIR = Path("./baio")
+DATA_DIR = BASE_DIR / "data"
+ST_APP_DIR = BASE_DIR / "st_app"
+TEXT_CONTENT_DIR = ST_APP_DIR / "text_content"
+
+# Define paths
+UPLOAD_DIR = DATA_DIR / "uploaded"
+DOWNLOAD_DIR = DATA_DIR / "output"
+
+side_bar_txt_path = TEXT_CONTENT_DIR / "side_bar_text.txt"
+aniseed_instruction_txt_path = TEXT_CONTENT_DIR / "aniseed_agent_instructions.txt"
 go_file_annotator_instruction_txt_path = (
-    "./baio/st_app/text_content/go_annotator_instructions.txt"
+    TEXT_CONTENT_DIR / "go_annotator_instructions.txt"
 )
-csv_instruction_txt_path = "./baio/st_app/text_content/csv_chatter_instructions.txt"
-ncbi_instruction_txt_path = "./baio/st_app/text_content/ncbi_agent_instructions.txt"
+csv_instruction_txt_path = TEXT_CONTENT_DIR / "csv_chatter_instructions.txt"
+ncbi_instruction_txt_path = TEXT_CONTENT_DIR / "ncbi_agent_instructions.txt"
+LICENSE_path = TEXT_CONTENT_DIR / "LICENSE.txt"
 
-LICENSE_path = "./baio/st_app/text_content/LICENSE.txt"
 
 # initialising paths
-base_dir = (
+base_dir = Path(
     os.getcwd()
 )  # Gets the current working directory from where the app is launched
-path_aniseed_out = os.path.join(
-    base_dir, "baio", "data", "output", "aniseed", "aniseed_out.csv"
+
+# Define paths using pathlib
+path_aniseed_out = base_dir / "baio" / "data" / "output" / "aniseed" / "aniseed_out.csv"
+path_go_nl_out = (
+    base_dir / "baio" / "data" / "output" / "gene_ontology" / "go_annotation.csv"
 )
-path_go_nl_out = os.path.join(
-    base_dir, "baio", "data", "output", "gene_ontology", "go_annotation.csv"
-)
-go_file_out = os.path.join(
-    base_dir, "baio", "data", "output", "gene_ontology", "go_annotation.csv"
+go_file_out = (
+    base_dir / "baio" / "data" / "output" / "gene_ontology" / "go_annotation.csv"
 )
 
 
+# Function to read text file using pathlib
 def read_txt_file(path):
-    with open(path, "r") as file:
+    path = Path(path)  # Ensure the path is a pathlib.Path object
+    with path.open("r") as file:  # Use pathlib's open method
         return file.read()
 
 
 def app():
-    st.sidebar.markdown("""# PROVIDE AN OpenAI API KEY:""")
+    st.sidebar.markdown("""PROVIDE AN OpenAI API KEY:""")
 
     banner_image = "./baio/data/persistant_files/baio_logo.png"
     st.image(banner_image, use_column_width=True)
     openai_api_key = st.sidebar.text_input("OpenAI API KEY")
-    model_options = ["gpt-4-1106-preview", "gpt-4", "gpt-4-32k", "gpt-3.5-turbo"]
-    default_model = "gpt-4"
+    model_options = ["gpt-4o", "gpt-4", "gpt-4-32k", "gpt-3.5-turbo"]
+    default_model = "gpt-4o"
     selected_model = st.sidebar.selectbox(
         "Select a model",
         model_options,
         index=model_options.index(default_model),  # Set the default option by index
     )
 
-    # Check if the "Reinitialize LLM" button is clicked or if the llm is not in session state
+    # Check if the "Reinitialize LLM" button is clicked or if the llm is not in session
+    # state
     if st.sidebar.button("Reinitialize LLM") or "llm" not in st.session_state:
         if openai_api_key:
             LLM.initialize(openai_api_key=openai_api_key, selected_model=selected_model)
@@ -67,46 +79,24 @@ def app():
                 "Please provide an OpenAI API key."
             )  # Show error message in the sidebar
     st.sidebar.markdown(read_txt_file(side_bar_txt_path), unsafe_allow_html=True)
+
     if st.sidebar.button("Show License"):
         st.sidebar.markdown(read_txt_file(LICENSE_path))
     if openai_api_key:
         os.environ["OPENAI_API_KEY"] = openai_api_key
-        go_file_annotator = "Local GO agent"
-        file_chatter = "Local file agent"
-        ncbi = "NCBI"
-        local_genome_explorer = "Local genome explorer"
-        selected_agent = st.radio(
-            "Choose an agent:",
-            [
-                "BaIO agent",
-                go_file_annotator,
-                file_chatter,
-                ncbi,
-                local_genome_explorer,
-            ],
-        )
-        from src.agents.aniseed_agent import aniseed_go_agent
-        from src.agents.csv_chatter_agent import csv_agent_creator
-        from src.agents.file_annotator_agent import file_annotator_agent
-        from src.agents.ncbi_agent import ncbi_agent
-        from src.mytools.csv_chatter_tool import filechatter_instructions
-        from src.mytools.go_tool import go_file_tool
-        from src.non_llm_tools.genome_explorer import genome_explorer
+        llm = ChatOpenAI(model="gpt-4", temperature=0, api_key=openai_api_key)
+        embedding = OpenAIEmbeddings(api_key=openai_api_key)
+        agent = MyAgents()
+        selected_agent = agent.initialise_agent_selection()
 
-        def create_csv_agent(file_paths):
-            valid_file_paths = [fp for fp in file_paths if fp is not None]
-            if valid_file_paths:
-                return csv_agent_creator(valid_file_paths)
-            return None
+        from baio.src.agents import aniseed_agent, baio_agent, csv_chatter_agent
 
-        # ######
-        # ######      ANISEED AGENT
-        # ######
+        # ANISEED AGENT
 
-        if selected_agent == "BaIO agent":
+        if selected_agent == agent.aniseed_agent:
             file_manager_aniseed = FileManager()
             with st.form("form_for_aniseed_agent"):
-                st.write("BaIO agent")
+                st.write("Aniseed agent")
                 with st.expander("Instructions"):
                     st.markdown(read_txt_file(aniseed_instruction_txt_path))
                 question = st.text_area(
@@ -115,46 +105,25 @@ def app():
                     " robusta?",
                 )
                 submitted = st.form_submit_button("Submit")
-                # reset_memory = st.form_submit_button('Clear chat history')
-
-                # st.write(path_aniseed_out, path_go_nl_out)
-                # Add the file paths to the file_paths dictionary
-
                 if submitted:
                     with get_openai_callback() as cb:
                         try:
-                            result = aniseed_go_agent(question)
+                            print("try")
+                            result = aniseed_agent(question, llm)
                             # st.info(result['output'])
                             st.info(f"Total cost is: {cb.total_cost} USD")
                             st.write("Files generated:\n" + "\n".join(result))
-                            path_aniseed_out = "aniseed/aniseed_out_0.csv"
-                            # change: output last tool used by agent in order to select
-                            # previeved file
-                            if (
-                                "GO" in str(result["chat_history"][1])
-                                or "Gene Ontology" in str(result["chat_history"][1])
-                                or "entrez" in str(result["chat_history"][1])
-                                or "ensembl" in str(result["chat_history"][1])
-                            ):
-                                file_manager_aniseed.preview_file(path_go_nl_out)
-                                st.markdown(
-                                    file_manager_aniseed.file_download_button(
-                                        path_aniseed_out
-                                    ),
-                                    unsafe_allow_html=True,
-                                )
-                            else:
-                                file_manager_aniseed.preview_file(path_aniseed_out)
-                                st.markdown(
-                                    file_manager_aniseed.file_download_button(
-                                        path_aniseed_out
-                                    ),
-                                    unsafe_allow_html=True,
-                                )
+                            file_manager_aniseed.preview_file(result[0])
+                            st.markdown(
+                                file_manager_aniseed.file_download_button(
+                                    path_aniseed_out
+                                ),
+                                unsafe_allow_html=True,
+                            )
 
                         except:
                             st.write(
-                                "Something went wrong, please try to reforumulate your "
+                                "Something went wrong, please try to reformulate your "
                                 "question"
                             )
                 # if reset_memory:
@@ -162,84 +131,9 @@ def app():
             file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
             file_manager.run()
 
-        # ######
-        # ######      GENOME AGENT
-        # ######
-        if selected_agent == "Local genome explorer":
-            with st.form("form_for_genome_explorer"):
-                st.write("Local genome explorer")
-                with st.expander("UPLOAD YOUR GENOME"):
-                    genome_name = st.text_input("Enter the name of the genome")
-                    col1, col2 = st.columns(2)
-                    if genome_name:
-                        genome_dir = os.path.join(UPLOAD_DIR, genome_name)
-                        os.makedirs(genome_dir, exist_ok=True)
-                    with col1:
-                        uploaded_file_1 = st.file_uploader(
-                            "Upload your genome gft below:", type=["gft"]
-                        )
-
-                    with col2:
-                        uploaded_file_2 = st.file_uploader(
-                            "Upload your genome fasta file below:", type=["fasta", "fa"]
-                        )
-                    if uploaded_file_1:
-                        st.write("You've uploaded a gft file!")
-                        save_uploaded_file(uploaded_file_1, genome_dir)
-                    if uploaded_file_2:
-                        st.write("You've uploaded a fasta file!")
-                        save_uploaded_file(uploaded_file_2, genome_dir)
-
-                    if uploaded_file_1 and uploaded_file_2:
-                        gft_file_path = os.path.join(genome_dir, uploaded_file_1.name)
-                        fasta_file_path = os.path.join(genome_dir, uploaded_file_2.name)
-                        genome_db_builder(gft_file_path, fasta_file_path, genome_name)
-
-                # Directory where the genomes are stored
-                genome_dir = "./baio/data/persistant_files/genome"
-
-                # Get a list of all files in the genome directory
-                genome_dirs = [
-                    d
-                    for d in os.listdir(genome_dir)
-                    if os.path.isdir(os.path.join(genome_dir, d))
-                ]
-                options = genome_dirs
-                selected_option = st.selectbox("Select an option:", options)
-                ###TO DO: implement logic for genome upload
-                # If the selected option is a file in the genome directory, set the paths to the selected file
-                if selected_option in genome_dirs:
-                    selected_dir = os.path.join(genome_dir, selected_option)
-                    genome_fasta_path = next(
-                        os.path.join(selected_dir, f)
-                        for f in os.listdir(selected_dir)
-                        if f.endswith(".fa") or f.endswith(".fasta")
-                    )
-                    genome_db_path = next(
-                        os.path.join(selected_dir, f)
-                        for f in os.listdir(selected_dir)
-                        if f.endswith(".db")
-                    )
-
-                output_dir = "./baio/data/output/genome_explorer"
-
-                identifier = st.text_area(
-                    "Enter a gene identifiers (comma separated)", "KY.Chr2.2230"
-                )
-                submitted = st.form_submit_button("Submit")
-                if submitted:
-                    genome_explorer(
-                        [identifier], genome_db_path, genome_fasta_path, output_dir
-                    )
-                    st.success("The gene has been processed successfully.")
-            file_manager = FileManager(
-                "./baio/data/output/genome_explorer", "./baio/data/upload/"
-            )
-            file_manager.run()
-        ####
-        ####    FILE GO ANNOTATOR
-        ####
-        elif selected_agent == go_file_annotator:
+        # FILE GO ANNOTATOR
+        elif selected_agent == agent.go_file_annotator:
+            from baio.src.non_llm_tools import go_file_tool
 
             go_file_annotator_file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
             st.write("Local GO agent")
@@ -284,12 +178,11 @@ def app():
 
             file_manager = FileManager("./baio/data/output/", "./baio/data/upload/")
             file_manager.run()
-        ####
-        ####    FILE CHATTER
-        ####
+
+        # FILE CHATTER
 
         # CHAT WITH YOUR CSV AND OTHER FILES
-        elif selected_agent == file_chatter:
+        elif selected_agent == agent.file_chatter:
             csv_chatter_file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
             st.write("Ask questions about your selected or uploaded file")
             with st.expander("Instructions"):
@@ -314,37 +207,33 @@ def app():
                 st.write("Explore a file ")
                 question = st.text_area(
                     "Enter text:",
-                    "Example: What are the unique genes per stage? please make a new data frame of them and put it in a file",
+                    "Example: What are the unique genes per stage? please make a new "
+                    "data frame of them and put it in a file",
                 )
-                reset_memory = st.form_submit_button("Clear chat history")
 
                 submitted = st.form_submit_button("Submit")
 
                 if submitted:
                     files = [file_path1, file_path2]
 
-                    if len(files) != 0:
-                        csv_agent = create_csv_agent(files)
-
                     with get_openai_callback() as cb:
-                        result = csv_agent.run(filechatter_instructions + question)
+
+                        if len(files) != 0:
+                            result = csv_chatter_agent(question, files, llm)
+
                         try:
-                            st.info(result["output"])
+                            st.info(result)
                             st.info(cb.total_cost)
                         except TypeError:
                             st.info(result)
 
-                        if reset_memory and csv_agent:
-                            csv_agent.memory.clear()
-
             file_manager = FileManager("./baio/data/output/", "./baio/data/upload/")
             file_manager.run()
 
-        ####
-        ####    NCBI
-        ####
+        # NCBI
 
-        elif selected_agent == ncbi:
+        elif selected_agent == agent.baio_agent:
+
             file_manager_aniseed = FileManager()
             with st.form("form_for_aniseed_agent"):
                 st.write("NCBI agent")
@@ -352,50 +241,109 @@ def app():
                     st.markdown(read_txt_file(ncbi_instruction_txt_path))
                 question = st.text_area(
                     "Enter question for NCBI agent:",
-                    "Which organism does the DNA sequence come from:AGGGGCAGCAAACACCGGGACACACCCATTCGTGCACTAATCAGAAACTTTTTTTTCTCAAATAATTCAAACAATCAAAATTGGTTTTTTCGAGCAAGGTGGGAAATTTTTCGAT",
+                    "Which organism does the DNA sequence come from:AGGGGCAGCAAACACCGGG"
+                    "ACACACCCATTCGTGCACTAATCAGAAACTTTTTTTTCTCAAATAATTCAAACAATCAAAATTGGT"
+                    "TTTTTCGAGCAAGGTGGGAAATTTTTCGAT",
                 )
                 submitted = st.form_submit_button("Submit")
-                reset_memory = st.form_submit_button("Clear chat history")
-
                 # st.write(path_aniseed_out, path_go_nl_out)
                 # Add the file paths to the file_paths dictionary
 
                 if submitted:
                     with get_openai_callback() as cb:
                         try:
-                            result = ncbi_agent(question)
+                            result = baio_agent(question, llm, embedding)
                             st.info(result)
                             st.info(f"Total cost is: {cb.total_cost} USD")
-                            st.write(f"Your generated file is below:")
+                            st.write("Your generated file is below:")
                         except:
                             st.write(
-                                "Something went wrong, please try to reformulate your question"
+                                "Something went wrong, please try to reformulate your "
+                                "question"
                             )
-                if reset_memory:
-                    ncbi_agent.memory.clear()
             file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
             file_manager.run()
 
     else:
         st.write("version 0.0.1")
         st.markdown(
-            '<p style="font-size:48px;text-align:center;">AGENTS EXECUTE CODE ON YOUR MACHINE, IT IS RECOMMENDED TO USE BAIO IN A CONTAINER</p>',
+            '<p style="font-size:48px;text-align:center;">Agents execute code. Use Baio in a container</p>',
+            unsafe_allow_html=True,
+        )
+        st.markdown(
+            """
+            BaIO: Bridge to biological databases.
+            Query NCBI, Ensembl, and ANISEED using natural language.
+            Annotate your files with GO terms, Ensembl IDs, and RefSeq IDs.
+            Explore and analyze your local data with AI assistance.
+            """
+        )
+        st.markdown(
+            '<p style="font-size:24px;text-align:center;">To use the <b>NCBI, ANISEED\
+            </b> and <b>Local file explorer</b> you must provide a valid OpenAI API key</p>',
             unsafe_allow_html=True,
         )
 
-        st.markdown(
-            '<p style="font-size:24px;text-align:center;">To use the <b>ANISEED & GO term</b> and <b>Local file explorer</b> you must provide a valid OpenAI API key</p>',
-            unsafe_allow_html=True,
+        from baio.src.non_llm_tools import go_file_tool
+
+        go_file_annotator_file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
+        st.write("Local GO agent")
+        with st.expander("Instructions"):
+            st.markdown(read_txt_file(go_file_annotator_instruction_txt_path))
+        uploaded_file = st.file_uploader("Upload your file below:", type=["csv"])
+        if uploaded_file:
+            st.write("You've uploaded a file!")
+            save_uploaded_file(uploaded_file, UPLOAD_DIR)
+            go_file_annotator_file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
+
+        file_path = go_file_annotator_file_manager.select_file_preview_true(
+            key="file_path"
         )
+
+        with st.form("form_for_file_annotator_agent"):
+
+            input_file_gene_name_column = st.text_area(
+                "Enter gene name column:", "gene_name"
+            )
+            submitted = st.form_submit_button("Submit")
+
+            if submitted:
+                with get_openai_callback() as cb:
+
+                    result = go_file_tool(file_path, input_file_gene_name_column)
+                    go_file_annotator_file_manager = FileManager(
+                        UPLOAD_DIR, DOWNLOAD_DIR
+                    )
+
+                    try:
+                        go_file_annotator_file_manager.preview_file(result[1])
+                        st.markdown(
+                            go_file_annotator_file_manager.file_download_button(
+                                result[1]
+                            ),
+                            unsafe_allow_html=True,
+                        )
+                        st.info(cb.total_cost)
+                    except TypeError:
+                        st.info(result)
+
+        file_manager = FileManager("./baio/data/output/", "./baio/data/upload/")
+        file_manager.run()
 
         st.markdown(
             """
 
-        This is an application connecting the users questions and data to the internet and a coding agent.
-        (Agent: an autonomous computer program or system that is designed to perceive its environment, interprets it, plans actions and executes them in order to achieve a defined goal.)
-        It connects Large Language Models, such as OpenAI's ChatGPT, to public databases such as NCBI, Ensembl, and ANISEED, as well as the user's local files.
-        BaIO allows users to query these databases with natural language and annotate files with relevant information, including GO terms, Ensembl IDs, and RefSeq IDs.
-        BaIO is built on the Python LangChain library and various tools developed by myself and the user interface is rendered with Streamlit.
+        This is an application connecting the users questions and data to the internet
+        and a coding agent.
+        (Agent: an autonomous computer program or system that is designed to perceive
+        its environment, interprets it, plans actions and executes them in order to
+        achieve a defined goal.)
+        It connects Large Language Models, such as OpenAI's ChatGPT, to public databases
+        such as NCBI, Ensembl, and ANISEED, as well as the user's local files.
+        BaIO allows users to query these databases with natural language and annotate
+        files with relevant information, including GO terms, Ensembl IDs, and RefSeq IDs.
+        BaIO is built on the Python LangChain library and various tools developed by
+        myself and the user interface is rendered with Streamlit.
         """
         )
         st.markdown("# BaIO agent")
