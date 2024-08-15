@@ -39,6 +39,9 @@ xmltodict = "*"
 gffutils = "*"
 pytest = "^8.3.2"
 
+[tool.poetry.group.dev.dependencies]
+pandas-stubs = "^2.2.2.240807"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
