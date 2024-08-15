@@ -1,5 +1,5 @@
 import uuid
-from typing import Optional, Type
+from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -137,7 +137,7 @@ ANISEEDQueryRequest = (
 )
 
 
-def get_query_class(function: str) -> Type[ANISEEDQueryRequest]:
+def get_query_class(function: str):
     query_class_map = {
         "all_genes": AllGenesQuery,
         "all_genes_by_stage": AllGenesByStageQuery,

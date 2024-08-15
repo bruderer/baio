@@ -1,13 +1,10 @@
 import concurrent.futures
-import os
 from typing import Any, Dict, List, Optional
 
-import mygene
+import mygene  # type: ignore
 import pandas as pd
-from langchain.tools import tool
 from pydantic import BaseModel
 
-from baio.src.mytools.key_word_extractor_tool import NaturalLanguageExtractors
 from baio.src.non_llm_tools.utilities import Utils
 
 
@@ -33,7 +30,7 @@ class GeneGOExtractor:
 
         self.summary_table = self.get_dataframe()
 
-    def _get_go_and_ids_info(self) -> list:
+    def _get_go_and_ids_info(self):
         """
         Retrieve GO information and IDs for the gene of interest.
 
@@ -222,9 +219,6 @@ class GeneGOExtractor:
         return df
 
 
-import streamlit as st
-
-
 class Gene(BaseModel):
     """A class for holding the gene information of each gene input"""
 
@@ -321,38 +315,6 @@ class GoFormater:
         ).drop(columns="name")
 
         return merged_df
-
-
-@tool
-def go_nl_query_tool(nl_input: str) -> pd.DataFrame:
-    """Used when the input is a natural language written query containing gene names
-    that need a GO annotation.
-    Tool to find gene ontologies (using mygene), outputs data frame with GO & gene id
-    annotated gene names
-
-    Parameters:
-    input_string (str): A natural language string containing gene names that have to be
-    processed
-
-    Returns:
-    final_dataframe (dataframe): A df containing annotated genes with GO & IDs from
-    mygene.
-    """
-
-    # we extract all the go terms and ids for all genes in this list
-
-    extractor = NaturalLanguageExtractors(nl_input)
-    gene_list = extractor.gene_name_extractor()
-    gof = GoFormater(gene_list)
-    final_go_df = gof.go_gene_annotation()
-    final_go_df = Utils.parse_refseq_id(final_go_df)
-    base_dir = os.getcwd()
-    SAVE_PATH = os.path.join(
-        base_dir, "baio", "data", "output", "gene_ontology", "go_annotation.csv"
-    )
-
-    final_go_df.to_csv(SAVE_PATH)
-    return final_go_df.head()
 
 
 # stateless approach
@@ -553,18 +515,19 @@ def save_to_csv(df, filename):
     df.to_csv(filename, index=False)
 
 
-def go_file_tool(
-    input_file_path: str, input_file_gene_name_column: str
-) -> pd.DataFrame:
+def go_file_tool(input_file_path: str, input_file_gene_name_column: str):
     """Used when the input is a file and not a human written query.
-    Tool to find gene ontologies (using mygene), outputs data frame with GO & gene id annotated gene names
+    Tool to find gene ontologies (using mygene), outputs data frame with GO & gene id
+    annotated gene names
 
     Parameters:
-    input_file_path (str): A string which is a path to the csv file containing gene names to be annotated
+    input_file_path (str): A string which is a path to the csv file containing gene
+    names to be annotated
     input_file_gene_name_column (str): a string which is the column name containing the
 
     Returns:
-    final_dataframe (dataframe): A df containing annotated genes with GO & IDs from mygene concatenated with the input file.
+    final_dataframe (dataframe): A df containing annotated genes with GO & IDs from
+    mygene concatenated with the input file.
     """
 
     gene_list = list(

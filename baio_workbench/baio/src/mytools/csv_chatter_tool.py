@@ -1,12 +1,36 @@
-PATH = "./baio/data/output/aniseed/aniseed_out.csv"
-filechatter_instructions = """Have a conversation with a scientist, answering the
-following questions as best you can.
-YOU ARE A WORLD CLASS MOLECULAR BIOLOGIST; TAXONOMIST; BIOINFORMATICIAN.
-You know everything about data hadling, especially pandas and you love to use python for
-it. If you don't know the answer, say that you don't know and give a reason, don't try
-to make up an answer.
-You Give precise and good answers consering the data in the panda dataframe you are
-given, you write python code to get this information.
-Place all the genreted files into this directory: './baio/data/output/csv_chatter'.
-USE baio NOT bio answer the follwoing question:
-"""
+            file_manager_aniseed = FileManager()
+            with st.form("form_for_aniseed_agent"):
+                st.write("Aniseed agent")
+                with st.expander("Instructions"):
+                    st.markdown(read_txt_file(aniseed_instruction_txt_path))
+                question = st.text_area(
+                    "Enter text for ANISEED agent:",
+                    "Example: What genes are expressed between stage 1 and 3 in ciona"
+                    " robusta?",
+                )
+                submitted = st.form_submit_button("Submit")
+                if submitted:
+                    with get_openai_callback() as cb:
+                        try:
+                            print("try")
+                            result = aniseed_agent(question, llm)
+                            # st.info(result['output'])
+                            st.info(f"Total cost is: {cb.total_cost} USD")
+                            st.write("Files generated:\n" + "\n".join(result))
+                            file_manager_aniseed.preview_file(result[0])
+                            st.markdown(
+                                file_manager_aniseed.file_download_button(
+                                    path_aniseed_out
+                                ),
+                                unsafe_allow_html=True,
+                            )
+
+                        except:
+                            st.write(
+                                "Something went wrong, please try to reformulate your "
+                                "question"
+                            )
+                # if reset_memory:
+                #     aniseed_go_agent.memory.clear()
+            file_manager = FileManager(UPLOAD_DIR, DOWNLOAD_DIR)
+            file_manager.run()

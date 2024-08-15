@@ -37,10 +37,6 @@ class BLATQueryRequest(BaseModel):
         description="depends on the query DNA, protein, translated RNA, or translated "
         "DNA",
     )
-    question_uuid: Optional[str] = Field(
-        default_factory=lambda: str(uuid.uuid4()),
-        description="Unique identifier for the question.",
-    )
     full_url: str = Field(
         default="TBF",
         description="Url for the BLAT query, use the given examples to make the "

@@ -2,7 +2,7 @@ from .aniseed import aniseed_tool
 from .blast import blast_tool
 from .blat import BLAT_tool
 from .eutils import eutils_tool
-from .go_tool import go_nl_query_tool
+from .nl_go_tool import go_nl_query_tool
 from .select_tool import MyTool, select_best_fitting_tool
 
 __all__ = [
