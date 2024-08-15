@@ -79,10 +79,10 @@ class FileManager:
         files_with_paths = self.list_all_files()
         # Strip the directories from the file paths for display purposes
         files_display = [
-            file_path.replace(d, "")
+            str(file_path).replace(str(d), "")
             for d in self.directories
             for file_path in files_with_paths
-            if file_path.startswith(d)
+            if str(file_path).startswith(str(d))
         ]
         # Add a "None" option as the first item in the list
         files_display.insert(0, "Select a file")
@@ -116,10 +116,10 @@ class FileManager:
         files_with_paths = self.list_all_files()
         # Strip the directories from the file paths for display purposes
         files_display = [
-            file_path.replace(d, "")
+            str(file_path).replace(str(d), "")
             for d in self.directories
             for file_path in files_with_paths
-            if file_path.startswith(d)
+            if str(file_path).startswith(str(d))
         ]
         # Add a "Select a file" option as the first item in the list
         files_display.insert(0, "Select a file")
