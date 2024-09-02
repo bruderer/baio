@@ -42,6 +42,7 @@ function_mapping = {
     "eutils_tool": eutils_tool,
     "blast_tool": blast_tool,
     "BLAT_tool": BLAT_tool,
+    "mygenetool": go_nl_query_tool,
 }
 
 

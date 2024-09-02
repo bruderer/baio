@@ -57,7 +57,7 @@ def BLAT_api_query_generator(
     BLAT_call_obj.ucsc_db = BLAT_db_obj.ucsc_db
     BLAT_call_obj.question_uuid = str(uuid.uuid4())
     data = {
-        # 'url' : 'https://genome.ucsc.edu/cgi-bin/hgBlat?',
+        # "url": "https://genome.ucsc.edu/cgi-bin/hgBlat?",
         "userSeq": BLAT_call_obj.query,
         "type": BLAT_call_obj.ucsc_query_type,
         "db": BLAT_call_obj.ucsc_db,

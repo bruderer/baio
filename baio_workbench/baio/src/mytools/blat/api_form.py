@@ -7,7 +7,7 @@ from langchain_core.pydantic_v1 import BaseModel, Field
 class BLATQueryRequest(BaseModel):
     url: str = Field(
         default="https://genome.ucsc.edu/cgi-bin/hgBlat?",
-        description="For DNA alignnment to a specific genome use default",
+        description="ALWAYS USE DEFAULT",
     )
     query: Optional[str] = Field(
         None,

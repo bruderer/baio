@@ -1,10 +1,8 @@
 import base64
 import os
-import shutil
 
 import pandas as pd
 import streamlit as st
-from langchain.callbacks import get_openai_callback
 
 
 class FileManager:
@@ -63,17 +61,26 @@ class FileManager:
 
     def file_download_button(self, path, label="Download"):
         """Generate a button to download the file or directory."""
-        if os.path.isfile(path):
-            filename = os.path.basename(path)  # extract the filename
-            with open(path, "rb") as f:
-                bytes_data = f.read()
-            b64 = base64.b64encode(bytes_data).decode()  # bytes to base64 string
-            href = f'<a href="data:file/octet-stream;base64,{b64}" download="{filename}" style="display:inline-block;padding:0.25em 0.5em;background:#4CAF50;color:white;border-radius:3px;text-decoration:none">{label}</a>'
+        if not os.path.exists(path):
+            return f"<p>Error: Path {path} does not exist.</p>"
 
+        if os.path.isfile(path):
+            try:
+                filename = os.path.basename(path)
+                with open(path, "rb") as f:
+                    bytes_data = f.read()
+                b64 = base64.b64encode(bytes_data).decode()
+                href = f'<a href="data:file/octet-stream;base64,{b64}" \
+                    download="{filename}" style="display:inline-block;padding:0.25em \
+                    0.5em;background:#4CAF50;color:white;border-radius:3px;text\
+                    -decoration:none">{label}</a>'
+            except Exception as e:
+                href = f"<p>Error reading file: {str(e)}</p>"
         else:  # path is a directory
             filename = os.path.basename(path) + ".zip"
             href = f'<a href="#" onclick="downloadDirectory(\'{path}\', \'{filename}\')" style="display:inline-block;padding:0.25em 0.5em;background:#4CAF50;color:white;border-radius:3px;text-decoration:none">{label}</a>'
-            return href
+
+        return href
 
     def select_file_preview_true(self, key):
         files_with_paths = self.list_all_files()

@@ -1,0 +1,12 @@
+FROM python:3.8-slim
+
+WORKDIR /app
+
+# Copy requirements and install them
+COPY ./requirements_doc.txt /app/
+RUN pip install -r /app/requirements_doc.txt
+
+# Copy the entire docs directory
+COPY ./doc /app/doc
+
+WORKDIR /app/docs

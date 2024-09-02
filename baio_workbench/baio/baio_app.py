@@ -1,6 +1,7 @@
 import os
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 from langchain.callbacks import get_openai_callback
 from langchain.chat_models import ChatOpenAI
@@ -36,7 +37,9 @@ base_dir = Path(
 )  # Gets the current working directory from where the app is launched
 
 # Define paths using pathlib
-path_aniseed_out = base_dir / "baio" / "data" / "output" / "aniseed" / "aniseed_out.csv"
+path_aniseed_out = (
+    base_dir / "baio" / "data" / "output" / "aniseed" / "aniseed_out_0.csv"
+)
 path_go_nl_out = (
     base_dir / "baio" / "data" / "output" / "gene_ontology" / "go_annotation.csv"
 )
@@ -116,7 +119,7 @@ def app():
                             file_manager_aniseed.preview_file(result[0])
                             st.markdown(
                                 file_manager_aniseed.file_download_button(
-                                    path_aniseed_out
+                                    "./baio/data/output/aniseed/aniseed_out_0.csv"
                                 ),
                                 unsafe_allow_html=True,
                             )
@@ -236,26 +239,28 @@ def app():
 
             file_manager_aniseed = FileManager()
             with st.form("form_for_aniseed_agent"):
-                st.write("NCBI agent")
+                st.write("baio agent")
                 with st.expander("Instructions"):
                     st.markdown(read_txt_file(ncbi_instruction_txt_path))
                 question = st.text_area(
-                    "Enter question for NCBI agent:",
+                    "Enter question for baio agent:",
                     "Which organism does the DNA sequence come from:AGGGGCAGCAAACACCGGG"
                     "ACACACCCATTCGTGCACTAATCAGAAACTTTTTTTTCTCAAATAATTCAAACAATCAAAATTGGT"
                     "TTTTTCGAGCAAGGTGGGAAATTTTTCGAT",
                 )
                 submitted = st.form_submit_button("Submit")
-                # st.write(path_aniseed_out, path_go_nl_out)
                 # Add the file paths to the file_paths dictionary
 
                 if submitted:
                     with get_openai_callback() as cb:
                         try:
                             result = baio_agent(question, llm, embedding)
-                            st.info(result)
-                            st.info(f"Total cost is: {cb.total_cost} USD")
-                            st.write("Your generated file is below:")
+                            if isinstance(result, pd.DataFrame):
+                                st.table(
+                                    result
+                                )  # Display as a table if it's a dataframe
+                            else:
+                                st.write(result)
                         except:
                             st.write(
                                 "Something went wrong, please try to reformulate your "
@@ -346,7 +351,7 @@ def app():
         myself and the user interface is rendered with Streamlit.
         """
         )
-        st.markdown("# BaIO agent")
+        st.markdown("# baio agent")
         st.markdown(read_txt_file(aniseed_instruction_txt_path))
         st.markdown("# Local GO Agent")
         st.markdown(read_txt_file(go_file_annotator_instruction_txt_path))

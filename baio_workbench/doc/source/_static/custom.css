@@ -1,0 +1,29 @@
+
+.header-bar {
+    background-color: transparent !important; /* Use `transparent` to remove the color */
+}
+/* Underline the active section in the sidebar */
+.sidebar .current {
+    text-decoration: underline;
+}
+
+/* Optional: Different styles for nested levels */
+.sidebar .current .toctree-l1 > a {
+    text-decoration: underline;
+}
+.sidebar .current .toctree-l2 > a {
+    text-decoration: underline;
+}
+.sidebar .current .toctree-l3 > a {
+    text-decoration: underline;
+}
+
+.table-bordered th, .table-bordered td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+.table-bordered th {
+    background-color: #f2f2f2;
+    text-align: left;
+}

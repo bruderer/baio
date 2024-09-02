@@ -56,7 +56,9 @@ def aniseed_tool(question: str, llm):
         data = response.json()
         os.makedirs(os.path.dirname(formatted_path_tempjson), exist_ok=True)
         try:
-            print(f"Path: {formatted_path_tempjson}")  # Check the path
+            print(
+                f"Path: formatted_path_tempjson = {formatted_path_tempjson}"
+            )  # Check the path
             with open(formatted_path_tempjson, "w") as f:
                 json.dump(data, f)
             print("Data saved successfully.")
@@ -66,6 +68,7 @@ def aniseed_tool(question: str, llm):
         prompt_2 = AniseedJSONExtractor(
             formatted_path_tempjson, formatted_path_save_csv
         ).get_prompt()
+        print(prompt_2)
         print("python agent will be executed")
         aniseed_out_paths.append(formatted_path_save_csv)
 

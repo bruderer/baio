@@ -122,7 +122,7 @@ def all_regulatory_regions(self, organism_id, search=None):
 
 def ANISEED_multistep(question: str, llm):
     """FUNCTION to write api call for any ANISEED query,"""
-    print("Finding the required aniseed api fucntions to answer the question...\n")
+    print("Finding the required aniseed api function to answer the question...\n")
     structured_output_prompt = ChatPromptTemplate.from_messages(
         [
             (

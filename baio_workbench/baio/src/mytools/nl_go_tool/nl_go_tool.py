@@ -27,7 +27,11 @@ class NaturalLanguageExtractors:
         """
         schema = {
             "properties": {
-                "gene_names": {"type": "string"},
+                "gene_names": {
+                    "type": "string",
+                    "description": "Gene names that you find, always extrac ALL gene "
+                    "names",
+                },
             },
             "required": ["gene_names"],
         }
@@ -36,13 +40,14 @@ class NaturalLanguageExtractors:
         # Run chain
         chain = create_extraction_chain(schema, llm)
         result = chain.run(self.natural_language_string)
-
+        print(result)
         # unpacking the list and splitting
-        gene_list = [gene.strip() for gene in [result[0]["gene_names"]][0].split(",")]
+        gene_list = [gene_dict["gene_names"].strip() for gene_dict in result]
+
         return gene_list
 
 
-def go_nl_query_tool(nl_input: str, llm) -> pd.DataFrame:
+def go_nl_query_tool(nl_input: str, llm, embedding) -> pd.DataFrame:
     """Used when the input is a natural language written query containing gene names
     that need a GO annotation.
     Tool to find gene ontologies (using mygene), outputs data frame with GO & gene id

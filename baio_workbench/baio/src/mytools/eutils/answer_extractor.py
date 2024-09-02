@@ -76,7 +76,8 @@ class EutilsAnswerExtractor:
         proteasome 20S subunit beta 10 [Homo sapiens (human)]\nOther Aliases: LMP10,
         MECL1, PRAAS5, beta2i\nOther Designations:
         Answer: PSMB10
-        Based on the information given here:\n\
+        Note: always format the answer nicely if you can.
+        Base you answer on the information given here:\n\
         {context}
         """
         self.eutils_CHAIN_PROMPT = PromptTemplate(

@@ -19,7 +19,7 @@ class AnswerExtractor:
         )
         template_api_eutils = """
         You have to answer the question:{question} as clear and short as possible, be
-        factual!\n\
+        factual! Be precise and if there are mismatches, say so!\n\
         Example question: Align the DNA sequence to the human genome:
         ATTCTGCCTTTAGTAATTTGATGACAGAGACTTCTTGGGAACCACAGCCAGGGAGCCACCCTTTACTCCACCAACAGGT\
         GGCTTATATCCAATCTGAGAAAGAAAGAAAAAAAAAAAAGTATTTCTCT"\
@@ -41,8 +41,8 @@ class AnswerExtractor:
         Find the tStart and tEnd fields, be sure to use the exact same integers as in
         the output. Always use the best matches, do not give more than 3 examples if
         there are multiple matches\
-        Answer: chr15:91950804-91950932\n\
-        Based on the information given here \n\
+        Answer: chr15:91950804-91950932; Identity score: 100%; Matches: 128\n\
+        Based on the information given below \n\
         {context}
         """
         self.eutils_CHAIN_PROMPT = PromptTemplate(

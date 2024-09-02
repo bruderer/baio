@@ -59,7 +59,8 @@ class AllGenesByTerritoryQuery(BaseANISEEDQuery):
     organism_id: int = Field(..., description="The ID of the organism to query")
     cell: str = Field(..., description="The specific cell or territory to query")
     search: Optional[str] = Field(
-        None, description="Optional search term to filter results"
+        None,
+        description="Optional search term to filter results, leave empty if not needed",
     )
 
 

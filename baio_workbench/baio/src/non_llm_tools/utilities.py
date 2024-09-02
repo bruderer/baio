@@ -115,6 +115,7 @@ class JSONUtils:
         """
         self.path = path
         self.data = None
+        print(f"Path: {self.path}")
 
     def extract_keys_from_obj(self, obj):
         """
@@ -158,6 +159,7 @@ class JSONUtils:
         Returns:
         - dict: Dictionary containing the base type and key types of the JSON content.
         """
+        print(f"Path: {self.path}")
         with open(self.path, "r") as file:
             obj = json.load(file)
         return self.extract_keys_from_obj(obj)

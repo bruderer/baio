@@ -29,7 +29,7 @@ class ToolSelector(BaseModel):
 
 def select_best_fitting_tool(question: str, tools: list, llm):
     """FUNCTION to select tool to answer user questions"""
-    BLAST_structured_output_prompt = ChatPromptTemplate.from_messages(
+    tool_structured_output_prompt = ChatPromptTemplate.from_messages(
         [
             (
                 "system",
@@ -45,7 +45,7 @@ def select_best_fitting_tool(question: str, tools: list, llm):
         ]
     )
     runnable = create_structured_output_runnable(
-        ToolSelector, llm, BLAST_structured_output_prompt
+        ToolSelector, llm, tool_structured_output_prompt
     )
     # retrieve relevant info to question
     # keep top 3 hits

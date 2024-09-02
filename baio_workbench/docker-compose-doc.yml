@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  docs_baio:
+    build:
+      context: .
+      dockerfile: Dockerfile.documentation
+    ports:
+      - "8008:8008"
+    volumes:
+      - ./doc:/app/doc
+    command: [ "sphinx-autobuild", "/app/doc/source", "/app/docs/build/html", "--host", "0.0.0.0", "--port", "8008" ]

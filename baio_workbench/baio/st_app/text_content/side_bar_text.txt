@@ -4,8 +4,9 @@
 
 * [ANISEED](https://www.aniseed.cnrs.fr/)
 * [Ensembl](https://www.ensembl.org/)
-* [UniProt](https://www.uniprot.org/)
 * [NCBI](https://www.ncbi.nlm.nih.gov/)
+* [UCSC genome browser](https://genome.ucsc.edu/)
+* [UniProt](https://www.uniprot.org/)
 
 **Contact Information:** 
 * Contact: [noah.bruderer@uib.no](mailto:noah.bruderer@uib.no)

@@ -1,5 +1,5 @@
 class AniseedAPI:
-    BASE_URL = "http://www.aniseed.fr/api"
+    BASE_URL = "https://www.aniseed.fr/api"
 
     def all_genes(self, organism_id, search=None):
         """
@@ -59,6 +59,7 @@ class AniseedAPI:
         """
         Returns a URL to list all territories where a specific gene is expressed for a
         given organism.
+        ALWAYS use this if you need to find what territories a gene is expressed in.
         Optionally, a search term can be provided to filter the territories.
         """
         url = (

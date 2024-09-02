@@ -10,18 +10,19 @@ class AniseedJSONExtractor:
         - aniseed_csv_output_path (str): Path to save the CSV file.
         """
         self.aniseed_csv_save_path = aniseed_csv_output_path
+        self.aniseed_json_path = aniseed_json_path
         self.json_utils = JSONUtils(aniseed_json_path)
         self.keys_structure = self.json_utils.extract_keys()
 
     def get_prompt(self):
-        """YOU ARE A PYTHON REPL TOOL, YOU CAN AND MUST EXECUTE CODE THAT YOU EITHER
-        WRITE OR ARE BEING PROVIDE, NEVER ANSER WITH I'm sorry, but as an AI text-based
-        model, I don't have the ability to directly interact with files or execute
-        Python code. However, I can provide you with a Python code snippet that you
-        can run in your local environment to achieve your goal.
-        Build prompt with key strucure from JSON utils and output path given. NEVER
-        look at the whole data frame, only look at the head of it!!! OTHERWISE YOU WILL
-        BREAK
+        """YOU ARE A PYTHON REPL TOOL, YOU CAN AND MUST EXECUTE CODE THAT YOU EITHER \
+        WRITE OR ARE BEING PROVIDE, NEVER ANSER WITH I'm sorry, but as an AI text-based\
+         model, I don't have the ability to directly interact with files or execute \
+        Python code. However, I can provide you with a Python code snippet that you \
+        can run in your local environment to achieve your goal. \
+        Build prompt with key strucure from JSON utils and output path given. NEVER \
+        look at the whole data frame, only look at the head of it!!! OTHERWISE YOU WILL\
+         BREAK
         """
         structure_dic_explainaition = """
             base_type: This field specifies the primary data type of the provided
@@ -64,10 +65,10 @@ class AniseedJSONExtractor:
             or execute Python code. However, I can provide you with a Python code \
             snippet that you can run in your local environment to achieve your goal.\
         Build prompt with key structure from JSON utils and output path given. NEVER\
-            look at the whole data frame, only look at the head of it!!! OTHERWISE YOU\
-            WILL BREAK You have to EXECUTE code to unpack the json file in\
-            './baio/data/output/aniseed/temp/aniseed_temp.json' and creat a panda df.\n\
-        ALWAYS USE THE PYTHON_REPL TOOL TO EXECUTE CODE\
+            look at the whole data frame, only look at the head of it!!! OTHERWISE YOU"
+            + "WILL BREAK You have to EXECUTE code to unpack the json file in "
+            f" {self.aniseed_json_path} and creat a panda df.\n"
+            + "ALWAYS USE THE PYTHON_REPL TOOL TO EXECUTE CODE\
         Following the instructions below:\n \
         VERY IMPORTANT: The first key in 'key_types' must be the first column in the df\
         and each deeper nested key-value must have it, example:\n \
@@ -80,8 +81,12 @@ class AniseedJSONExtractor:
             + str(self.keys_structure)
             + structure_dic_explainaition
             + panda_creation_instructions
-            + "save the output as csv in:"
+            + "save the output as csv in: "
             + self.aniseed_csv_save_path
-            + "EXECUTE CODE YOU IDIOT"
+            + "the input file is in: "
+            + self.aniseed_json_path
+            + "\n"
+            + "EXECUTE CODE!!! BE WARE OF USING THE CORRECT INPUT PATH, always double"
+            + f" CHECK that you have the {self.aniseed_json_path} file with the correct"
         )
         return prompt

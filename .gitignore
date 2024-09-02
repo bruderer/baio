@@ -1,2 +1,5 @@
 .DS_Store
 baio_workbench/baio/data/output/aniseed/temp/aniseed_temp.json
+repopack-output.txt
+baio_workbench/baio/data/output/aniseed/*
+baio_workbench/baio/data/output/aniseed/aniseed_out_0.csv

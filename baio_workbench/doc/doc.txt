@@ -1,0 +1,946 @@
+File: ./source/_static/links.rst
+Content:
+.. Databases
+
+
+.. _ncbi: https://www.ncbi.nlm.nih.gov/
+
+---
+
+File: ./source/index.md
+Content:
+# BAIO Documentation
+```{toctree}
+:maxdepth: 2
+
+
+baio_doc/overview/index
+baio_doc/code/index
+```
+
+
+```{include} baio_doc/overview/introduction.md
+```
+
+---
+
+File: ./source/baio_doc/code/tools/nl_go_tool_doc.md
+Content:
+# Natural language to GO terms tool
+
+## Overview
+
+This module provides functionality to process natural language queries about gene ontology (GO) terms. It defines a `NaturalLanguageExtractors` class for extracting gene names from natural language input and a `go_nl_query_tool` function that serves as the main entry point for GO annotation queries.
+
+## Classes
+
+### NaturalLanguageExtractors
+
+This class contains methods to extract certain information in a structured manner from natural language input.
+
+#### Methods:
+
+##### __init__(self, natural_language_string)
+- Initializes the extractor with the input string.
+- Parameters:
+  - `natural_language_string` (str): The string from which information will be extracted.
+
+##### gene_name_extractor(self, llm) -> list
+- Extracts gene names from the input string.
+- Parameters:
+  - `llm`: The language model to use for extraction.
+- Returns:
+  - A list of extracted gene names.
+
+## Functions
+
+### go_nl_query_tool(nl_input: str, llm, embedding) -> pd.DataFrame
+
+This is the main function used when the input is a natural language written query containing gene names that need GO annotation.
+
+#### Parameters:
+- `nl_input` (str): A natural language string containing gene names to be processed.
+- `llm`: The language model to use for processing.
+- `embedding`: The embedding model to use.
+
+#### Returns:
+- `pd.DataFrame`: A DataFrame containing annotated genes with GO terms and gene IDs from mygene.
+
+#### Process:
+1. Creates an instance of `NaturalLanguageExtractors` with the input string.
+2. Extracts gene names from the input using `gene_name_extractor`.
+3. Creates a `GoFormater` instance with the extracted gene list.
+4. Uses the `GoFormater` to annotate the genes with GO terms.
+5. Parses RefSeq IDs in the resulting DataFrame.
+6. Saves the result as a CSV file.
+7. Returns the head of the final DataFrame.
+
+## Usage
+
+To use this module:
+
+1. Import the necessary function:
+   ```python
+   from baio.src.mytools.nl_go_tool import go_nl_query_tool
+   ```
+
+2. Prepare your natural language input:
+   ```python
+   nl_input = "What are the GO terms for genes BRCA1, TP53, and EGFR?"
+   ```
+
+3. Call the `go_nl_query_tool` function:
+   ```python
+   result_df = go_nl_query_tool(nl_input, llm, embedding)
+   ```
+
+4. The result will be a DataFrame containing GO annotations for the specified genes:
+   ```python
+   print(result_df)
+   ```
+
+## Notes
+
+- The module uses the `GoFormater` class from `baio.src.non_llm_tools` to perform the actual GO annotation.
+- The results are saved as a CSV file in the `./baio/data/output/gene_ontology/` directory.
+- The function returns only the head of the DataFrame for preview purposes. The full results are available in the saved CSV file.
+- This tool is particularly useful for biologists and researchers who want to quickly obtain GO annotations for a set of genes using natural language queries.
+
+This module is a key component of the BaIO system, allowing users to easily obtain gene ontology information using natural language queries, bridging the gap between human language and structured biological data.
+---
+
+File: ./source/baio_doc/code/tools/blast_tool_doc.md
+Content:
+# BLAST Tool
+
+## What is BLAST?
+
+BLAST (Basic Local Alignment Search Tool) is a sequence similarity search program that can be used to quickly search sequence databases for optimal local alignments to a query. The NCBI BLAST finds regions of similarity between biological sequences, comparing nucleotide or protein sequences to sequence databases and calculating the statistical significance.
+
+### Basic BLAST Workflow:
+
+1. **Query Submission**: A nucleotide or protein sequence is submitted as a query.
+2. **Database Search**: The query is compared against a selected sequence database.
+3. **Alignment**: Local alignments are performed to find regions of similarity.
+4. **Scoring**: Alignments are scored and ranked based on statistical significance.
+5. **Results**: A report is generated showing the best matches and their statistics.
+
+## BaIO BLAST Tool
+
+The BLAST tool in BaIO provides an interface to access the NCBI BLAST service using natural language queries.
+
+### Supported BLAST Programs:
+- blastn: Nucleotide-nucleotide BLAST
+- blastp: Protein-protein BLAST
+<!-- - blastx: Nucleotide query vs. protein database
+- tblastn: Protein query vs. nucleotide database
+- tblastx: Translated nucleotide vs. translated nucleotide -->
+
+### Features:
+- Natural language query processing
+- Automatic BLAST program selection
+- Query construction and submission to NCBI BLAST
+- Result retrieval and parsing
+- Human-readable answer generation
+
+### Input
+- Natural language queries describing desired search and the DNA or protein sequences.
+
+### Process
+1. Query analysis and parsing
+2. BLAST program and database selection
+3. Query sequence extraction (if provided in the natural language input)
+4. BLAST API call construction and submission
+5. Result retrieval and processing
+6. Answer generation from BLAST results
+
+### Output
+- Structured data returned by the BLAST API (e.g., alignments, scores, E-values).
+- Text summary: A concise, human-readable answer to the user's query, generated from the BLAST results.
+- Logging of query, results, and generated answer.
+
+### Example Queries:
+- "What organism does this protein sequence likely come from: MAEGEITTFTALTEKFNLPPGNYKKPKLLY"
+- "Are there any known genes similar to this sequence in mice?"
+
+## BLAST Tool Implementation
+
+The BLAST tool is implemented through several Python modules, each handling a specific part of the process:
+
+### 1. blast/api_form.py
+
+Defines the structure for BLAST API requests using Pydantic models.
+
+#### Key Class:
+`BlastQueryRequest`: Defines the structure for BLAST API requests.
+- Fields include BLAST program, database, query sequence, and other BLAST parameters.
+
+### 2. blast/query_generator.py
+
+Responsible for generating structured BLAST queries from natural language input.
+
+#### Key Function:
+`BLAST_api_query_generator(question: str, doc, llm) -> BlastQueryRequest`
+
+Process:
+1. Analyzes the natural language question using the language model.
+2. Extracts relevant parameters (sequence, desired database, etc.).
+3. Constructs a `BlastQueryRequest` object.
+
+### 3. blast/query_executer.py
+
+Handles the execution of BLAST API calls and processing of responses.
+
+#### Key Functions:
+- `submit_blast_query(request_data: BlastQueryRequest) -> str`: 
+  Submits the BLAST query and returns a Request ID (RID).
+- `fetch_and_save_blast_results(request_data: BlastQueryRequest, rid: str, ...) -> str`:
+  Retrieves BLAST results using the RID and saves them to a file.
+
+### 4. blast/answer_extractor.py
+
+Processes the raw BLAST results and generates human-readable answers.
+
+#### Key Class:
+`BLASTAnswerExtractor`: Contains methods to parse BLAST results and generate summaries.
+
+#### Key Method:
+`query(self, question: str, file_path: str, n: int, embedding, llm) -> dict`
+
+Process:
+1. Reads BLAST results from the file.
+2. Uses language models to interpret results in the context of the original question.
+3. Generates a concise, relevant answer.
+
+### 5. blast/tool.py
+
+The main entry point for the BLAST tool, orchestrating the entire process.
+
+#### Key Function:
+`blast_tool(question: str, llm, embedding) -> str`
+
+Process Flow:
+1. Generates a structured BLAST query from the natural language input.
+2. Submits the BLAST query and retrieves results.
+3. Processes the results to extract a relevant answer.
+4. Returns the answer as a string.
+
+## Usage
+
+To use the BLAST tool within BaIO:
+
+```python
+from langchain.chat_models import ChatOpenAI
+from langchain.embeddings import OpenAIEmbeddings
+from baio.src.mytools.blast import blast_tool
+
+# Initialize components
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+embedding = OpenAIEmbeddings()
+
+# Use the tool
+question = "What organism does this DNA sequence likely come from: ATCGATCGTAGCTAGC"
+result = blast_tool(question, llm, embedding)
+
+print(result)
+# Output: Based on the BLAST results, the DNA sequence ATCGATCGTAGCTAGC likely comes from Homo sapiens (humans). The sequence shows...
+```
+
+This modular structure allows for easy maintenance and potential future expansions, such as supporting additional BLAST programs or customizing result interpretation for specific use cases.
+---
+
+File: ./source/baio_doc/code/tools/index.md
+Content:
+# Tools Documentation
+
+This section covers documentation for various tools used in our project.
+
+```{toctree}
+:maxdepth: 1
+:caption: Available Tools:
+
+aniseed_tool_doc
+blast_tool_doc
+blat_tool_doc
+eutils_tool_doc
+nl_go_tool_doc
+
+```
+
+---
+
+File: ./source/baio_doc/code/tools/aniseed_tool_doc.md
+Content:
+# Aniseed Tool
+
+## What is Aniseed?
+
+Aniseed (Ascidian Network for In Situ Expression and Embryological Data) is a database and web interface for ascidian developmental biology. It provides gene expression patterns, anatomical descriptions, and other developmental biology data for ascidian species.
+
+## BaIO Aniseed Tool
+
+The Aniseed tool in BaIO provides an advanced interface to query the Aniseed database using natural language. Unlike other tools in BaIO, the Aniseed tool implements a multi-step decision process to handle complex queries efficiently.
+
+### Features:
+- Natural language query processing
+- Multi-step decision making for query handling
+- Automatic selection and execution of multiple Aniseed API endpoints when necessary
+- Query construction and submission to Aniseed
+- Result retrieval, processing, and integration from multiple API calls
+- Human-readable answer generation
+
+### Input
+- Natural language queries about ascidian gene expression, developmental stages, anatomical structures, or any combination thereof.
+
+### Process
+1. Query analysis and multi-step decision making
+2. Aniseed API endpoint selection (potentially multiple)
+3. API call construction and submission (potentially multiple calls)
+4. Result retrieval and processing from all API calls
+5. Integration of results from multiple calls (if applicable)
+6. Answer generation from integrated Aniseed results
+
+### Output
+- Structured data returned by the Aniseed API (e.g., gene expression patterns, developmental stage information)
+- Text summary: A concise, human-readable answer to the user's query, potentially integrating information from multiple API calls
+- CSV file containing detailed results (when applicable)
+- Logging of query, results, and generated answer
+
+### Example Queries:
+- "What genes are expressed in the notochord of Ciona intestinalis at the larval stage?"
+- "Compare the expression patterns of Brachyury between the gastrula and neurula stages in Ciona intestinalis."
+- "Find genes expressed in both the tail and the trunk of Ciona intestinalis embryos between stages 15 and 20."
+
+## Aniseed Tool Implementation:
+
+The Aniseed tool has a unique architecture within BaIO, reflecting its multi-step decision process:
+
+### 1. aniseed/api_form.py
+Defines multiple structures for different Aniseed API requests:
+- `ANISEEDQueryRequest`: Base class for all Aniseed queries
+- Specific request classes for each Aniseed API endpoint (e.g., `AllGenesQuery`, `AllGenesByStageQuery`, etc.)
+
+### 2. aniseed/multi_step_decision.py
+Implements the multi-step decision process:
+- `AniseedStepDecider`: Determines which API calls are necessary to answer a query
+- `ANISEED_multistep`: Orchestrates the multi-step process
+
+### 3. aniseed/query_generator.py
+Generates structured Aniseed queries based on the decisions made:
+- `ANISEED_query_generator`: Creates specific API requests for each required endpoint
+
+### 4. aniseed/query_executer.py
+Handles the execution of Aniseed API calls:
+- `execute_query`: Sends requests to the Aniseed API
+- `save_ANISEED_result`: Saves results from each API call
+
+### 5. aniseed/answer_extractor.py
+Processes and integrates results from multiple API calls:
+- `AniseedJSONExtractor`: Extracts relevant information from JSON responses
+- `ANISEED_answer`: Generates the final answer by integrating all results
+
+### 6. aniseed/tool.py
+The main entry point for the Aniseed tool:
+- `aniseed_tool`: Orchestrates the entire process, from query input to answer generation
+
+## Unique Aspects of the Aniseed Tool:
+
+1. **Multi-step Decision Making**: Unlike other tools, Aniseed may require multiple API calls to answer a single query. The tool decides which calls are necessary based on the query complexity.
+
+2. **Flexible API Endpoint Usage**: The tool can dynamically select and use multiple Aniseed API endpoints as needed for a single query.
+
+3. **Result Integration**: When multiple API calls are made, the tool integrates the results to provide a comprehensive answer.
+
+4. **CSV Output**: For queries that return substantial data, the tool generates a CSV file for easier data analysis by the user.
+
+## Usage of the Aniseed Tool
+
+To use the Aniseed tool within BaIO:
+
+```python
+from langchain.chat_models import ChatOpenAI
+from baio.src.mytools.aniseed import aniseed_tool
+
+# Initialize components
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+
+# Use the Aniseed tool
+question = "What genes are expressed in the notochord of Ciona intestinalis between stages 15 and 20?"
+result = aniseed_tool(question, llm)
+
+print(result)
+# Output: Based on the Aniseed database, the genes expressed in the notochord of Ciona intestinalis between stages 15 and 20 include Brachyury, Noto, and FoxA. A CSV file 'aniseed_results.csv' has been generated with detailed expression data for these genes.
+
+# The tool also generates a CSV file with detailed results when applicable
+```
+
+The Aniseed tool's unique architecture allows it to handle complex queries about ascidian development, potentially integrating data from multiple Aniseed API endpoints to provide comprehensive answers. Its flexibility and multi-step approach make it a powerful tool for developmental biology researchers working with ascidian models.
+---
+
+File: ./source/baio_doc/code/tools/blat_tool_doc.md
+Content:
+## BLAT Tool
+
+### What is BLAT?
+
+BLAT (BLAST-Like Alignment Tool) is a pairwise sequence alignment algorithm designed to quickly find sequences of high similarity. It is particularly useful for aligning DNA sequences to a genome, or finding the genomic location of a given sequence.
+
+### Basic BLAT Workflow:
+
+1. **Query Submission**: A DNA or protein sequence is submitted as a query.
+2. **Index Search**: The query is compared against an indexed database of the genome.
+3. **Alignment**: Detailed alignments are performed for regions of high similarity.
+4. **Result Generation**: A report is generated showing the genomic locations and details of matches.
+
+### Baio BLAT implementation
+
+The BLAT tool in BaIO provides an interface to access the UCSC BLAT service using natural language queries.
+
+#### Features:
+- Natural language query processing
+- Automatic selection of appropriate genome assembly
+- Query construction and submission to UCSC BLAT
+- Result retrieval and parsing
+- Human-readable answer generation
+
+#### Input:
+- Natural language queries describing the desired BLAT search and the DNA sequence.
+
+#### Process:
+1. Query analysis and parsing
+2. Genome assembly selection
+3. Query sequence extraction
+4. BLAT API call construction and submission
+5. Result retrieval and processing
+6. Answer generation from BLAT results
+
+#### Output:
+- Structured data returned by the BLAT API (e.g., genomic locations, alignment details).
+- Text summary: A concise, human-readable answer to the user's query, generated from the BLAT results.
+- Logging of query, results, and generated answer.
+
+#### Example Query:
+"Align the DNA sequence ATCGATCGATCGATCG to the human genome."
+
+### BLAT Tool Implementation:
+
+The BLAT tool follows a similar structure to the BLAST tool:
+
+1. `blat/api_form.py`: Defines the structure for BLAT API requests.
+2. `blat/query_generator.py`: Generates structured BLAT queries from natural language input.
+3. `blat/query_executer.py`: Handles the execution of BLAT API calls and processing of responses.
+4. `blat/answer_extractor.py`: Processes the raw BLAT results and generates human-readable answers.
+5. `blat/tool.py`: The main entry point for the BLAT tool.
+
+---
+
+File: ./source/baio_doc/code/tools/eutils_tool_doc.md
+Content:
+# E-utilities Tool
+
+## What are NCBI E-utilities?
+
+NCBI E-utilities are a set of server-side programs that provide a stable interface to the Entrez query and database system at the National Center for Biotechnology Information (NCBI). E-utilities use a fixed URL syntax that translates a standard set of input parameters into the values necessary for various NCBI software components to search for and retrieve the requested data.
+
+### Basic E-utilities Workflow:
+
+1. **ESearch**: Searches and retrieves primary IDs (for use in EFetch, ELink, and ESummary) and term translations.
+2. **EFetch**: Retrieves records in the requested format from a list of one or more primary IDs.
+3. **ESummary**: Retrieves document summaries from a list of primary IDs.
+4. **ELink**: Retrieves IDs and linknames from a list of one or more primary IDs.
+
+The E-utilities tool in baio provides a interface to access various NCBI databases using the Entrez Programming Utilities (E-utilities).
+
+### Currently Supported Databases Accessible via NCBI E-utilities:
+- [Gene](https://www.ncbi.nlm.nih.gov/gene/): for gene-related queries
+- [SNP](https://www.ncbi.nlm.nih.gov/snp/): for single nucleotide polymorphism information
+- [OMIM](https://www.ncbi.nlm.nih.gov/omim): for data on genetic disorders and related genes
+
+### Input
+- Natural language queries related to genes, SNPs and genetic disorders.
+- Specific identifiers (e.g., gene symbols, SNP rs numbers)
+
+### Process
+1. Query analysis and parsing
+2. API call construction
+3. Execution of API calls to NCBI E-utilities
+4. Retrieval of results
+5. Processing and formatting of retrieved data
+
+### Output
+- Structured data returned by the api (e.g., gene information, SNP details, OMIM entries).
+- question, answer and path to returned data is logged in the JSON log file.
+- Text summary: A concise, human-readable answer to the user's query, generated from the retrieved data.
+
+### Questions that can be answered
+- What is the official symbol for a given gene?
+- What are the details of a specific SNP?
+- What genetic disorders are associated with a particular gene?
+- What is the genomic location of a gene?
+- What are the protein products of a gene?
+
+## Eutils Tool Logic
+
+The E-utilities tool is composed of several Python files, each responsible for different aspects of the tool's functionality. Here's a breakdown of each file and its primary components:
+
+### 1. api_form.py
+
+This file defines the structure for API requests using Pydantic models.
+
+#### Classes:
+- `EutilsAPIRequest`: Defines the structure for general E-utilities API requests.
+  - Fields include URL, database, search terms, and other API parameters.
+- `EfetchRequest`: Specific structure for E-fetch API requests.
+  - Includes fields for database, IDs, and return mode.
+
+These classes are used as input for the langchain structured output function (see query_generator.py).
+
+### 2. query_generator.py
+
+This file is a critical component of the E-utilities tool, responsible for translating natural language queries into structured API requests. It leverages advanced natural language processing techniques and the Langchain library to achieve this translation.
+
+#### Key Function:
+
+`eutils_API_query_generator(question: str, llm, doc) -> EutilsAPIRequest`
+
+This function is the core of the query generation process. It takes three main inputs:
+1. `question`: The natural language query from the user.
+2. `llm`: A language model (typically a Langchain ChatModel).
+3. `doc`: A vector store containing relevant documentation or context.
+
+#### Process Flow:
+
+1. **Context Retrieval**:
+   - Uses the vector store (`doc`) to retrieve relevant context for the query.
+   - This context helps in understanding the domain-specific nuances of the query.
+
+2. **Query Analysis**:
+   - Utilizes Langchain's `create_structured_output_runnable` to create a pipeline for structured output generation.
+   - This pipeline uses the provided language model (`llm`) to interpret the question and extract relevant parameters.
+
+3. **Structured Query Generation**:
+   - Constructs an `EutilsAPIRequest` object based on the interpreted query.
+   - Fills in necessary fields like database selection, search terms, and other API parameters.
+
+#### Example Usage:
+
+```python
+from langchain.chat_models import ChatOpenAI
+from langchain.embeddings import OpenAIEmbeddings
+from langchain.vectorstores import FAISS
+
+# Initialize components
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+embedding = OpenAIEmbeddings()
+doc = FAISS.load_local("path_to_vector_store", embedding)
+
+# Generate structured query
+question = "What is the official gene symbol for LMP10?"
+structured_query = eutils_API_query_generator(question, llm, doc)
+
+# structured_query is now an EutilsAPIRequest object ready for use in API calls
+```
+
+This approach allows for flexible natural language understanding, translating user queries into structured API requests that can be easily processed by the NCBI E-utilities.
+
+### 3. query_executer.py
+
+This module handles the execution of API calls to NCBI E-utilities and processes the responses. It implements a two-step process for most queries: first using ESearch to get relevant IDs, then using EFetch (or ESummary for SNPs) to retrieve detailed information.
+
+#### Key Functions:
+
+- `execute_eutils_api_call(request_data: Union[EutilsAPIRequest, EfetchRequest])`:
+  - Sends the API request to NCBI and handles the response.
+  - Can handle both ESearch and EFetch requests.
+  - Returns the response as JSON, raw bytes, or error message depending on the situation.
+
+- `extract_id_list(response, retmode: str) -> List[int | str]`:
+  - Extracts the list of IDs from an ESearch response.
+  - Handles both JSON and XML response formats.
+
+- `make_efetch_request(api_call: EutilsAPIRequest, id_list: List[int | str]) -> EfetchRequest`:
+  - Creates an EFetchRequest object based on the initial ESearch results.
+
+- `handle_non_snp_query(api_call: EutilsAPIRequest) -> List[Union[dict, str]]`:
+  - Manages the flow for non-SNP queries:
+    1. Executes ESearch to get relevant IDs.
+    2. Creates and executes an EFetch request using those IDs.
+  - Returns the EFetch response.
+
+- `handle_snp_query(api_call: EutilsAPIRequest) -> List[Union[dict, str]]`:
+  - Manages the flow for SNP queries:
+    1. Executes ESearch to get relevant SNP IDs.
+    2. Uses ESummary instead of EFetch for SNP data retrieval.
+  - Returns the ESummary response.
+
+- `save_response(response_list: List[Union[dict, str]], file_path: str, question_uuid: str) -> str`:
+  - Saves the API response to a file for further processing or reference.
+  - Handles different response types (JSON, binary, text).
+  - Returns the filename of the saved response.
+
+#### Flow of Operation:
+
+1. The `execute_eutils_api_call` function is called with an EutilsAPIRequest for the initial ESearch.
+2. The response is processed, and IDs are extracted using `extract_id_list`.
+3. For non-SNP queries:
+   - An EFetchRequest is created using `make_efetch_request`.
+   - `execute_eutils_api_call` is called again with this EFetchRequest.
+4. For SNP queries:
+   - The ESummary endpoint is used instead of EFetch.
+5. The final response (from EFetch or ESummary) is saved using `save_response`.
+
+This two-step process allows for efficient querying of NCBI databases, first narrowing down the relevant entries and then fetching detailed information only for those entries.
+
+### 4. answer_extractor.py
+
+This module is responsible for processing the raw API responses from NCBI E-utilities and transforming them into concise, human-readable answers. It plays a crucial role in making the complex data returned by the API accessible and understandable to users.
+
+#### Key Class:
+
+`EutilsAnswerExtractor`
+
+This class contains methods to parse and extract information from API responses, utilizing language models to generate summaries.
+
+#### Key Method:
+
+`query(self, question: str, file_path: str, llm, embedding) -> dict`
+
+This method is the core of the answer extraction process. It takes four main inputs:
+1. `question`: The original natural language query from the user.
+2. `file_path`: Path to the file containing the API response.
+3. `llm`: A language model (typically a Langchain ChatModel).
+4. `embedding`: An embedding model for vector operations.
+
+#### Process Flow:
+
+1. **Data Loading**:
+   - Reads the API response from the provided file path.
+   - Handles different file types (JSON, XML, text) based on the API response format.
+
+2. **Text Splitting**:
+   - Uses Langchain's `CharacterTextSplitter` to break down large responses into manageable chunks.
+   - This step is crucial for processing lengthy API responses within the context window of the language model.
+
+3. **Embedding and Retrieval**:
+   - Creates embeddings of the text chunks using the provided embedding model.
+   - Stores these embeddings in a FAISS vector store for efficient retrieval.
+
+4. **Question Answering**:
+   - Utilizes Langchain's `ConversationalRetrievalChain` to generate an answer based on the question and the relevant parts of the API response.
+   - This chain combines retrieval of relevant information with language model generation to produce coherent and accurate answers.
+
+5. **Answer Formatting**:
+   - Processes the generated answer to ensure it's in a user-friendly format.
+   - Handles special cases for different types of queries (e.g., gene information, SNP details, OMIM entries).
+
+#### Key Features:
+
+1. **Customized Prompts**: Uses specially crafted prompts to guide the language model in extracting and summarizing relevant information from API responses.
+
+2. **Context-Aware Processing**: Takes into account the original question to ensure the generated answer is relevant and on-topic.
+
+3. **Flexible Parsing**: Capable of handling various response formats from different NCBI databases.
+
+4. **Memory Management**: Utilizes Langchain's memory features to maintain context across multiple queries if needed.
+
+#### Langchain Integration:
+
+- **Text Splitting**: Uses `CharacterTextSplitter` for efficient processing of large text blocks.
+- **Vector Storage**: Employs FAISS vector store through Langchain for quick and relevant information retrieval.
+- **Retrieval Chain**: Leverages `ConversationalRetrievalChain` for context-aware question answering.
+- **Prompt Engineering**: Utilizes Langchain's prompt templates for consistent and effective interaction with the language model.
+
+#### Example Usage:
+
+```python
+from langchain.chat_models import ChatOpenAI
+from langchain.embeddings import OpenAIEmbeddings
+
+# Initialize components
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+embedding = OpenAIEmbeddings()
+
+# Create extractor instance
+extractor = EutilsAnswerExtractor()
+
+# Extract answer
+question = "What is the function of the BRCA1 gene?"
+file_path = "path/to/api_response.json"
+result = extractor.query(question, file_path, llm, embedding)
+
+print(result['answer'])
+# Output: BRCA1 (Breast Cancer 1) is a tumor suppressor gene that helps repair DNA damage and maintain genomic stability...
+```
+
+This module ensures that the wealth of information returned by NCBI E-utilities is distilled into clear, concise, and relevant answers to user queries, making complex biological data more accessible.
+
+### 5. tool.py
+
+This file serves as the main entry point for the E-utilities tool, orchestrating the entire process from user input to final output. It brings together all the components of the tool to provide a seamless interface for querying NCBI databases.
+
+#### Key Function:
+
+`eutils_tool(question: str, llm, embedding) -> str`
+
+This function is the primary interface for the E-utilities tool. It takes three main inputs:
+1. `question`: The natural language query from the user.
+2. `llm`: A language model (typically a Langchain ChatModel).
+3. `embedding`: An embedding model for vector operations.
+
+#### Process Flow:
+
+1. **Initialization**:
+   - Sets up necessary file paths and directories for logging and storing results.
+   - Loads the vector store containing relevant documentation.
+
+2. **Query Generation**:
+   - Calls `eutils_API_query_generator` to convert the natural language question into a structured `EutilsAPIRequest` object.
+
+3. **API Interaction**:
+   - Determines whether to use `handle_non_snp_query` or `handle_snp_query` based on the query type.
+   - Executes the appropriate function to interact with the NCBI E-utilities API.
+
+4. **Response Processing**:
+   - Saves the API response using `save_response` function.
+   - Logs the query details and file paths for future reference.
+
+5. **Answer Extraction**:
+   - Uses `result_file_extractor` to process the saved API response and generate a human-readable answer.
+
+6. **Result Return**:
+   - Returns the final answer as a string.
+
+#### Key Features:
+
+1. **Error Handling**: Implements try-except blocks to gracefully handle potential errors during the process.
+
+2. **Logging**: Maintains a detailed log of each query, including the question, generated file paths, and API URLs used.
+
+3. **Flexible Database Handling**: Automatically adapts to different NCBI databases (Gene, SNP, OMIM) based on the query content.
+
+4. **Caching**: Saves API responses, allowing for quick retrieval of previously queried information without repeating API calls.
+
+#### Example Usage:
+
+```python
+from langchain.chat_models import ChatOpenAI
+from langchain.embeddings import OpenAIEmbeddings
+
+# Initialize components
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+embedding = OpenAIEmbeddings()
+
+# Use the tool
+question = "What is the official gene symbol for LMP10?"
+result = eutils_tool(question, llm, embedding)
+
+print(result)
+# Output: The official gene symbol for LMP10 is PSMB10 (Proteasome 20S Subunit Beta 10).
+```
+
+#### Integration with Other Modules:
+
+`tool.py` integrates all other modules of the E-utilities tool:
+- Uses `query_generator.py` for translating natural language to structured queries.
+- Employs `query_executer.py` for making API calls and handling responses.
+- Utilizes `answer_extractor.py` for processing API responses into human-readable answers.
+
+This modular approach allows for easy maintenance and potential expansion to include more NCBI databases or query types in the future.
+---
+
+File: ./source/baio_doc/code/index.md
+Content:
+# Code
+
+This section covers the code documentation for our project.
+
+```{toctree}
+:maxdepth: 2
+
+tools/index
+streamlit_doc
+---
+
+File: ./source/baio_doc/code/streamlit_doc.md
+Content:
+# Streamlit App
+
+This file contains the main Streamlit application for BaIO. It sets up the user interface and coordinates the different components of the system.
+
+## Key Components
+
+1. **Imports and Setup**:
+   - Imports necessary libraries and modules
+   - Sets up file paths for various resources
+
+2. **Helper Functions**:
+   - `read_txt_file()`: Reads content from text files
+
+3. **Main Application Function** (`app()`):
+   - Sets up the Streamlit interface
+   - Handles user authentication (OpenAI API key input)
+   - Initializes the language model and embedding
+   - Manages agent selection and execution
+
+### User Interface Elements
+
+1. **Sidebar**:
+   - OpenAI API key input
+   - Model selection dropdown
+   - "Reinitialize LLM" button
+   - Information about BaIO
+
+2. **Main Area**:
+   - Agent selection radio buttons
+   - Query input areas
+   - File upload functionality
+   - Results display
+
+### Agents and Tools
+
+The app integrates several agents:
+- ANISEED Agent
+- BaIO Agent (for NCBI queries)
+- Local GO Agent
+- Local File Agent (CSV Chatter)
+
+Each agent has its own section in the UI with specific instructions and input fields.
+
+### File Management
+
+- Utilizes the `FileManager` class to handle file uploads, downloads, and previews
+- Supports various file types including CSV, TXT, and JSON
+
+### Error Handling and Callbacks
+
+- Implements try-except blocks for error handling
+- Uses OpenAI callbacks to track API usage and costs
+
+### Conditional Rendering:
+
+- The full functionality is only available when a valid OpenAI API key is provided
+- Without an API key, limited functionality is displayed along with general information about BaIO
+
+### Usage Instructions
+
+1. Run the Streamlit app: `streamlit run baio/baio_app.py`
+2. Input your OpenAI API key in the sidebar
+3. Select the desired agent/tool
+4. Enter your query or upload files as needed
+5. View results and download files as required
+
+This Streamlit app serves as the user-friendly interface for BaIO, making it easy for biologists and bioinformaticians to leverage the power of natural language processing for biological data analysis.
+---
+
+File: ./source/baio_doc/index.md
+Content:
+
+
+<!-- ```{include} overview/introduction.md
+``` -->
+
+---
+
+File: ./source/baio_doc/overview/introduction.md
+Content:
+## Introduction
+
+Welcome to BaIO, a Streamlit-based tool designed to facilitate biological data interaction. BaIO seamlessly connects you to multiple biological databases and analysis tools using natural language queries, making complex data retrieval and analysis more accessible.
+
+![Screenshot of Baio](baio_overview.png)
+
+### Key Features
+
+1. Natural Language Queries: Ask questions in plain English about genes, proteins, or biological processes.
+2. Multi-Database Integration through 'Agents':
+
+| Database Name | Website | Agent | What | Key Features | Use Cases |
+|---------------|---------|-------|------|--------------|-----------|
+| ANISEED | [ANISEED](https://www.aniseed.cnrs.fr/) | Aniseed agent | Developmental biology data | Ascidian-specific |Embryo development studies |
+| NCBI BLAST | [NCBI](https://www.ncbi.nlm.nih.gov/) | BaIO agent | Sequence search | BLAST algorithm| • Sequence homology search<br>• Gene/protein identification |
+| NCBI dbSNP | [NCBI](https://www.ncbi.nlm.nih.gov/) | BaIO agent | SNP database | SNP cataloging| Variant analysis|
+| NCBI OMIM | [NCBI](https://www.ncbi.nlm.nih.gov/) | BaIO agent | Genetic disorders database | Disease-gene associations | Genetic disorder research |
+| UCSC Genome browser | [UCSC Genome browser](https://genome.ucsc.edu/) | BaIO agent | Genome alignment | Genome mapping | ID genome loci for target sequence|
+| Ensembl | [Ensembl](https://www.ensembl.org/) | BaIO agent | Genomic annotations | • Comparative genomics<br>• Regulatory features | Gene annotation |
+| UniProt | [UniProt](https://www.uniprot.org/) | BaIO agent| Protein annotations | • Curated protein data<br>• Functional annotations | Protein function analysis |
+
+
+
+3. Local File Analysis: Explore and annotate your own CSV files with biological data.
+
+4. Interactive Results: View results in user-friendly formats, including tables and downloadable files.
+
+### Use Cases
+
+- Quickly find gene expression data across developmental stages for Ascidians
+- Quick answer to 'What is this sequence'?
+- Quick Gene symbol conversions
+- Annotate a list of genes with GO terms and other identifiers
+- Perform cross-database queries without needing to learn multiple query languages
+
+---
+
+File: ./source/baio_doc/overview/index.md
+Content:
+# Overview
+
+```{toctree}
+:maxdepth: 2
+
+installation
+introduction
+```
+
+```{include} baio_doc/overview/introduction.md
+```
+---
+
+File: ./source/baio_doc/overview/installation.md
+Content:
+
+## Installation 
+
+BaIO can be easily deployed using either Docker Compose or Poetry:
+
+### Docker Compose
+
+1. Ensure Docker and Docker Compose are installed on your system.
+2. Clone the BaIO repository.
+   ```
+   wget https://github.com/bruderer/baio
+   ```
+
+3. Navigate to the project directory.
+4. Run:
+   ```
+   docker-compose up -d
+   ```
+5. Access the app at `http://localhost:8501` in your web browser.
+
+### Poetry
+
+1. Ensure Python 3.10+ and Poetry are installed on your system.
+2. Clone the BaIO repository.
+3. Navigate to the project directory.
+4. Install dependencies:
+   ```
+   poetry install
+   ```
+5. Run the Streamlit app:
+   ```
+   poetry run streamlit run baio/baio_app.py
+   ```
+6. Access the app at the URL provided in the terminal.
+
+With these simple deployment options, you can quickly set up BaIO and start leveraging its powerful features for your biological data analysis needs.
+---
+
+File: ./build/html/_static/links.rst
+Content:
+.. Databases
+
+
+.. _ncbi: https://www.ncbi.nlm.nih.gov/
+
+---
+
