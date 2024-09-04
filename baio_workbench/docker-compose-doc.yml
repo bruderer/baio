@@ -8,8 +8,8 @@ services:
     ports:
       - "8008:8008"
     volumes:
-      - ./doc:/app/doc
+      - ./docs:/app/doc
       - ../docs:/app/docs # Output directory for GitHub Pages
 
     command: >
-      /bin/sh -c " sphinx-autobuild /app/doc/source /app/docs --host 0.0.0.0 --port 8008 "
+      /bin/sh -c "sphinx-autobuild /app/doc/source /app/docs --host 0.0.0.0 --port 8008 && touch /app/docs/.nojekyll"
