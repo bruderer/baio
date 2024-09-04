@@ -1,0 +1,787 @@
+<!doctype html>
+<html class="no-js" lang="en" data-content_root="">
+  <head><meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <meta name="color-scheme" content="light dark"><meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="index" title="Index" href="../../../genindex.html" /><link rel="search" title="Search" href="../../../search.html" /><link rel="next" title="Natural language to GO terms tool" href="nl_go_tool_doc.html" /><link rel="prev" title="BLAT Tool" href="blat_tool_doc.html" />
+
+    <!-- Generated with Sphinx 7.1.2 and Furo 2024.08.06 -->
+        <title>E-utilities Tool - Baio</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=649a27d8" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo.css?v=354aac6f" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/copybutton.css?v=76b2166b" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/styles/furo-extensions.css?v=302659d7" />
+    <link rel="stylesheet" type="text/css" href="../../../_static/custom.css?v=da23a515" />
+    
+    
+
+
+<style>
+  body {
+    --color-code-background: #f0f0f0;
+  --color-code-foreground: black;
+  --color-brand-primary: #007acc;
+  --color-brand-content: #006699;
+  --color-admonition-background: rgba(0, 122, 204, 0.1);
+  
+  }
+  @media not print {
+    body[data-theme="dark"] {
+      --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #1d4ed8;
+  --color-brand-content: #1e40af;
+  --color-admonition-background: rgba(29, 78, 216, 0.1);
+  
+    }
+    @media (prefers-color-scheme: dark) {
+      body:not([data-theme="light"]) {
+        --color-code-background: #202020;
+  --color-code-foreground: #d0d0d0;
+  --color-brand-primary: #1d4ed8;
+  --color-brand-content: #1e40af;
+  --color-admonition-background: rgba(29, 78, 216, 0.1);
+  
+      }
+    }
+  }
+</style></head>
+  <body>
+    
+    <script>
+      document.body.dataset.theme = localStorage.getItem("theme") || "auto";
+    </script>
+    
+
+<svg xmlns="http://www.w3.org/2000/svg" style="display: none;">
+  <symbol id="svg-toc" viewBox="0 0 24 24">
+    <title>Contents</title>
+    <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 1024 1024">
+      <path d="M408 442h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8zm-8 204c0 4.4 3.6 8 8 8h480c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8H408c-4.4 0-8 3.6-8 8v56zm504-486H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zm0 632H120c-4.4 0-8 3.6-8 8v56c0 4.4 3.6 8 8 8h784c4.4 0 8-3.6 8-8v-56c0-4.4-3.6-8-8-8zM115.4 518.9L271.7 642c5.8 4.6 14.4.5 14.4-6.9V388.9c0-7.4-8.5-11.5-14.4-6.9L115.4 505.1a8.74 8.74 0 0 0 0 13.8z"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-menu" viewBox="0 0 24 24">
+    <title>Menu</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-menu">
+      <line x1="3" y1="12" x2="21" y2="12"></line>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <line x1="3" y1="18" x2="21" y2="18"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-arrow-right" viewBox="0 0 24 24">
+    <title>Expand</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-chevron-right">
+      <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+  </symbol>
+  <symbol id="svg-sun" viewBox="0 0 24 24">
+    <title>Light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="feather-sun">
+      <circle cx="12" cy="12" r="5"></circle>
+      <line x1="12" y1="1" x2="12" y2="3"></line>
+      <line x1="12" y1="21" x2="12" y2="23"></line>
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+      <line x1="1" y1="12" x2="3" y2="12"></line>
+      <line x1="21" y1="12" x2="23" y2="12"></line>
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon" viewBox="0 0 24 24">
+    <title>Dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-moon">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454z" />
+    </svg>
+  </symbol>
+  <symbol id="svg-sun-with-moon" viewBox="0 0 24 24">
+    <title>Auto light/dark, in light mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path style="opacity: 50%" d="M 5.411 14.504 C 5.471 14.504 5.532 14.504 5.591 14.504 C 3.639 16.319 4.383 19.569 6.931 20.352 C 7.693 20.586 8.512 20.551 9.25 20.252 C 8.023 23.207 4.056 23.725 2.11 21.184 C 0.166 18.642 1.702 14.949 4.874 14.536 C 5.051 14.512 5.231 14.5 5.411 14.5 L 5.411 14.504 Z"/>
+      <line x1="14.5" y1="3.25" x2="14.5" y2="1.25"/>
+      <line x1="14.5" y1="15.85" x2="14.5" y2="17.85"/>
+      <line x1="10.044" y1="5.094" x2="8.63" y2="3.68"/>
+      <line x1="19" y1="14.05" x2="20.414" y2="15.464"/>
+      <line x1="8.2" y1="9.55" x2="6.2" y2="9.55"/>
+      <line x1="20.8" y1="9.55" x2="22.8" y2="9.55"/>
+      <line x1="10.044" y1="14.006" x2="8.63" y2="15.42"/>
+      <line x1="19" y1="5.05" x2="20.414" y2="3.636"/>
+      <circle cx="14.5" cy="9.55" r="3.6"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-moon-with-sun" viewBox="0 0 24 24">
+    <title>Auto light/dark, in dark mode</title>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+      class="icon-custom-derived-from-feather-sun-and-tabler-moon">
+      <path d="M 8.282 7.007 C 8.385 7.007 8.494 7.007 8.595 7.007 C 5.18 10.184 6.481 15.869 10.942 17.24 C 12.275 17.648 13.706 17.589 15 17.066 C 12.851 22.236 5.91 23.143 2.505 18.696 C -0.897 14.249 1.791 7.786 7.342 7.063 C 7.652 7.021 7.965 7 8.282 7 L 8.282 7.007 Z"/>
+      <line style="opacity: 50%" x1="18" y1="3.705" x2="18" y2="2.5"/>
+      <line style="opacity: 50%" x1="18" y1="11.295" x2="18" y2="12.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="4.816" x2="14.464" y2="3.964"/>
+      <line style="opacity: 50%" x1="20.711" y1="10.212" x2="21.563" y2="11.063"/>
+      <line style="opacity: 50%" x1="14.205" y1="7.5" x2="13.001" y2="7.5"/>
+      <line style="opacity: 50%" x1="21.795" y1="7.5" x2="23" y2="7.5"/>
+      <line style="opacity: 50%" x1="15.316" y1="10.184" x2="14.464" y2="11.036"/>
+      <line style="opacity: 50%" x1="20.711" y1="4.789" x2="21.563" y2="3.937"/>
+      <circle style="opacity: 50%" cx="18" cy="7.5" r="2.169"/>
+    </svg>
+  </symbol>
+  <symbol id="svg-pencil" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-pencil-code">
+      <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4" />
+      <path d="M13.5 6.5l4 4" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+  <symbol id="svg-eye" viewBox="0 0 24 24">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="1" stroke-linecap="round" stroke-linejoin="round" class="icon-tabler-eye-code">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+      <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" />
+      <path
+        d="M11.11 17.958c-3.209 -.307 -5.91 -2.293 -8.11 -5.958c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6c-.21 .352 -.427 .688 -.647 1.008" />
+      <path d="M20 21l2 -2l-2 -2" />
+      <path d="M17 17l-2 2l2 2" />
+    </svg>
+  </symbol>
+</svg>
+
+<input type="checkbox" class="sidebar-toggle" name="__navigation" id="__navigation">
+<input type="checkbox" class="sidebar-toggle" name="__toc" id="__toc">
+<label class="overlay sidebar-overlay" for="__navigation">
+  <div class="visually-hidden">Hide navigation sidebar</div>
+</label>
+<label class="overlay toc-overlay" for="__toc">
+  <div class="visually-hidden">Hide table of contents sidebar</div>
+</label>
+
+<a class="skip-to-content muted-link" href="#furo-main-content">Skip to content</a>
+
+
+
+<div class="page">
+  <header class="mobile-header">
+    <div class="header-left">
+      <label class="nav-overlay-icon" for="__navigation">
+        <div class="visually-hidden">Toggle site navigation sidebar</div>
+        <i class="icon"><svg><use href="#svg-menu"></use></svg></i>
+      </label>
+    </div>
+    <div class="header-center">
+      <a href="../../../index.html"><div class="brand">Baio</div></a>
+    </div>
+    <div class="header-right">
+      <div class="theme-toggle-container theme-toggle-header">
+        <button class="theme-toggle">
+          <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+          <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+          <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+          <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+          <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+        </button>
+      </div>
+      <label class="toc-overlay-icon toc-header-icon" for="__toc">
+        <div class="visually-hidden">Toggle table of contents sidebar</div>
+        <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+      </label>
+    </div>
+  </header>
+  <aside class="sidebar-drawer">
+    <div class="sidebar-container">
+      
+      <div class="sidebar-sticky"><a class="sidebar-brand" href="../../../index.html">
+  
+  <div class="sidebar-logo-container">
+    <img class="sidebar-logo" src="../../../_static/logo.jpg" alt="Logo"/>
+  </div>
+  
+  
+</a><form class="sidebar-search-container" method="get" action="../../../search.html" role="search">
+  <input class="sidebar-search" placeholder="Search" name="q" aria-label="Search">
+  <input type="hidden" name="check_keywords" value="yes">
+  <input type="hidden" name="area" value="default">
+</form>
+<div id="searchbox"></div><div class="sidebar-scroll"><div class="sidebar-tree">
+  <ul class="current">
+<li class="toctree-l1 has-children"><a class="reference internal" href="../../overview/index.html">Overview</a><input class="toctree-checkbox" id="toctree-checkbox-1" name="toctree-checkbox-1" role="switch" type="checkbox"/><label for="toctree-checkbox-1"><div class="visually-hidden">Toggle navigation of Overview</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../overview/installation.html">Installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../overview/introduction.html">Introduction</a></li>
+</ul>
+</li>
+<li class="toctree-l1 current has-children"><a class="reference internal" href="../index.html">Code</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-2" name="toctree-checkbox-2" role="switch" type="checkbox"/><label for="toctree-checkbox-2"><div class="visually-hidden">Toggle navigation of Code</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l2 current has-children"><a class="reference internal" href="index.html">Tools Documentation</a><input checked="" class="toctree-checkbox" id="toctree-checkbox-3" name="toctree-checkbox-3" role="switch" type="checkbox"/><label for="toctree-checkbox-3"><div class="visually-hidden">Toggle navigation of Tools Documentation</div><i class="icon"><svg><use href="#svg-arrow-right"></use></svg></i></label><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="aniseed_tool_doc.html">Aniseed Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blast_tool_doc.html">BLAST Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="blat_tool_doc.html">BLAT Tool</a></li>
+<li class="toctree-l3 current current-page"><a class="current reference internal" href="#">E-utilities Tool</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nl_go_tool_doc.html">Natural language to GO terms tool</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../streamlit_doc.html">Streamlit App</a></li>
+</ul>
+</li>
+</ul>
+
+</div>
+</div>
+
+      </div>
+      
+    </div>
+  </aside>
+  <div class="main">
+    <div class="content">
+      <div class="article-container">
+        <a href="#" class="back-to-top muted-link">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+            <path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8v12z"></path>
+          </svg>
+          <span>Back to top</span>
+        </a>
+        <div class="content-icon-container">
+          <div class="view-this-page">
+  <a class="muted-link" href="../../../_sources/baio_doc/code/tools/eutils_tool_doc.md.txt" title="View this page">
+    <svg><use href="#svg-eye"></use></svg>
+    <span class="visually-hidden">View this page</span>
+  </a>
+</div>
+<div class="theme-toggle-container theme-toggle-content">
+            <button class="theme-toggle">
+              <div class="visually-hidden">Toggle Light / Dark / Auto color theme</div>
+              <svg class="theme-icon-when-auto-light"><use href="#svg-sun-with-moon"></use></svg>
+              <svg class="theme-icon-when-auto-dark"><use href="#svg-moon-with-sun"></use></svg>
+              <svg class="theme-icon-when-dark"><use href="#svg-moon"></use></svg>
+              <svg class="theme-icon-when-light"><use href="#svg-sun"></use></svg>
+            </button>
+          </div>
+          <label class="toc-overlay-icon toc-content-icon" for="__toc">
+            <div class="visually-hidden">Toggle table of contents sidebar</div>
+            <i class="icon"><svg><use href="#svg-toc"></use></svg></i>
+          </label>
+        </div>
+        <article role="main" id="furo-main-content">
+          <section id="e-utilities-tool">
+<h1>E-utilities Tool<a class="headerlink" href="#e-utilities-tool" title="Permalink to this heading">¶</a></h1>
+<p>NCBI E-utilities are a set of server-side programs that provide a stable interface to the Entrez query and database system at the National Center for Biotechnology Information (NCBI). E-utilities use a fixed URL syntax that translates a standard set of input parameters into the values necessary for various NCBI software components to search for and retrieve the requested data.</p>
+<section id="basic-e-utilities-workflow">
+<h2>Basic E-utilities Workflow:<a class="headerlink" href="#basic-e-utilities-workflow" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p><strong>ESearch</strong>: Searches and retrieves primary IDs (for use in EFetch, ELink, and ESummary) and term translations.</p></li>
+<li><p><strong>EFetch</strong>: Retrieves records in the requested format from a list of one or more primary IDs.</p></li>
+<li><p><strong>ESummary</strong>: Retrieves document summaries from a list of primary IDs.</p></li>
+<li><p><strong>ELink</strong>: Retrieves IDs and linknames from a list of one or more primary IDs.</p></li>
+</ol>
+<p>The E-utilities tool in baio provides a interface to access various NCBI databases using the Entrez Programming Utilities (E-utilities).</p>
+</section>
+<section id="currently-supported-databases-accessible-via-ncbi-e-utilities">
+<h2>Currently Supported Databases Accessible via NCBI E-utilities:<a class="headerlink" href="#currently-supported-databases-accessible-via-ncbi-e-utilities" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.ncbi.nlm.nih.gov/gene/">Gene</a>: for gene-related queries</p></li>
+<li><p><a class="reference external" href="https://www.ncbi.nlm.nih.gov/snp/">SNP</a>: for single nucleotide polymorphism information</p></li>
+<li><p><a class="reference external" href="https://www.ncbi.nlm.nih.gov/omim">OMIM</a>: for data on genetic disorders and related genes</p></li>
+</ul>
+</section>
+<section id="input">
+<h2>Input<a class="headerlink" href="#input" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Natural language queries related to genes, SNPs and genetic disorders.</p></li>
+<li><p>Specific identifiers (e.g., gene symbols, SNP rs numbers)</p></li>
+</ul>
+</section>
+<section id="process">
+<h2>Process<a class="headerlink" href="#process" title="Permalink to this heading">¶</a></h2>
+<ol class="arabic simple">
+<li><p>Query analysis and parsing</p></li>
+<li><p>API call construction</p></li>
+<li><p>Execution of API calls to NCBI E-utilities</p></li>
+<li><p>Retrieval of results</p></li>
+<li><p>Processing and formatting of retrieved data</p></li>
+</ol>
+</section>
+<section id="output">
+<h2>Output<a class="headerlink" href="#output" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Structured data returned by the api (e.g., gene information, SNP details, OMIM entries).</p></li>
+<li><p>question, answer and path to returned data is logged in the JSON log file.</p></li>
+<li><p>Text summary: A concise, human-readable answer to the user’s query, generated from the retrieved data.</p></li>
+</ul>
+</section>
+<section id="questions-that-can-be-answered">
+<h2>Questions that can be answered<a class="headerlink" href="#questions-that-can-be-answered" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>What is the official symbol for a given gene?</p></li>
+<li><p>What are the details of a specific SNP?</p></li>
+<li><p>What genetic disorders are associated with a particular gene?</p></li>
+<li><p>What is the genomic location of a gene?</p></li>
+<li><p>What are the protein products of a gene?</p></li>
+</ul>
+</section>
+<section id="eutils-tool-logic">
+<h2>Eutils Tool Logic<a class="headerlink" href="#eutils-tool-logic" title="Permalink to this heading">¶</a></h2>
+<p>The E-utilities tool is composed of several Python files, each responsible for different aspects of the tool’s functionality. Here’s a breakdown of each file and its primary components:</p>
+<section id="api-form-py">
+<h3>1. api_form.py<a class="headerlink" href="#api-form-py" title="Permalink to this heading">¶</a></h3>
+<p>This file defines the structure for API requests using Pydantic models.</p>
+<section id="classes">
+<h4>Classes:<a class="headerlink" href="#classes" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">EutilsAPIRequest</span></code>: Defines the structure for general E-utilities API requests.</p>
+<ul>
+<li><p>Fields include URL, database, search terms, and other API parameters.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">EfetchRequest</span></code>: Specific structure for E-fetch API requests.</p>
+<ul>
+<li><p>Includes fields for database, IDs, and return mode.</p></li>
+</ul>
+</li>
+</ul>
+<p>These classes are used as input for the langchain structured output function (see query_generator.py).</p>
+</section>
+</section>
+<section id="query-generator-py">
+<h3>2. query_generator.py<a class="headerlink" href="#query-generator-py" title="Permalink to this heading">¶</a></h3>
+<p>This file is a critical component of the E-utilities tool, responsible for translating natural language queries into structured API requests. It leverages advanced natural language processing techniques and the Langchain library to achieve this translation.</p>
+<section id="key-function">
+<h4>Key Function:<a class="headerlink" href="#key-function" title="Permalink to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">eutils_API_query_generator(question:</span> <span class="pre">str,</span> <span class="pre">llm,</span> <span class="pre">doc)</span> <span class="pre">-&gt;</span> <span class="pre">EutilsAPIRequest</span></code></p>
+<p>This function is the core of the query generation process. It takes three main inputs:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">question</span></code>: The natural language query from the user.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">llm</span></code>: A language model (typically a Langchain ChatModel).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">doc</span></code>: A vector store containing relevant documentation or context.</p></li>
+</ol>
+</section>
+<section id="process-flow">
+<h4>Process Flow:<a class="headerlink" href="#process-flow" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Context Retrieval</strong>:</p>
+<ul class="simple">
+<li><p>Uses the vector store (<code class="docutils literal notranslate"><span class="pre">doc</span></code>) to retrieve relevant context for the query.</p></li>
+<li><p>This context helps in understanding the domain-specific nuances of the query.</p></li>
+</ul>
+</li>
+<li><p><strong>Query Analysis</strong>:</p>
+<ul class="simple">
+<li><p>Utilizes Langchain’s <code class="docutils literal notranslate"><span class="pre">create_structured_output_runnable</span></code> to create a pipeline for structured output generation.</p></li>
+<li><p>This pipeline uses the provided language model (<code class="docutils literal notranslate"><span class="pre">llm</span></code>) to interpret the question and extract relevant parameters.</p></li>
+</ul>
+</li>
+<li><p><strong>Structured Query Generation</strong>:</p>
+<ul class="simple">
+<li><p>Constructs an <code class="docutils literal notranslate"><span class="pre">EutilsAPIRequest</span></code> object based on the interpreted query.</p></li>
+<li><p>Fills in necessary fields like database selection, search terms, and other API parameters.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="example-usage">
+<h4>Example Usage:<a class="headerlink" href="#example-usage" title="Permalink to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">langchain.chat_models</span> <span class="kn">import</span> <span class="n">ChatOpenAI</span>
+<span class="kn">from</span> <span class="nn">langchain.embeddings</span> <span class="kn">import</span> <span class="n">OpenAIEmbeddings</span>
+<span class="kn">from</span> <span class="nn">langchain.vectorstores</span> <span class="kn">import</span> <span class="n">FAISS</span>
+
+<span class="c1"># Initialize components</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">embedding</span> <span class="o">=</span> <span class="n">OpenAIEmbeddings</span><span class="p">()</span>
+<span class="n">doc</span> <span class="o">=</span> <span class="n">FAISS</span><span class="o">.</span><span class="n">load_local</span><span class="p">(</span><span class="s2">&quot;path_to_vector_store&quot;</span><span class="p">,</span> <span class="n">embedding</span><span class="p">)</span>
+
+<span class="c1"># Generate structured query</span>
+<span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;What is the official gene symbol for LMP10?&quot;</span>
+<span class="n">structured_query</span> <span class="o">=</span> <span class="n">eutils_API_query_generator</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">doc</span><span class="p">)</span>
+
+<span class="c1"># structured_query is now an EutilsAPIRequest object ready for use in API calls</span>
+</pre></div>
+</div>
+<p>This approach allows for flexible natural language understanding, translating user queries into structured API requests that can be easily processed by the NCBI E-utilities.</p>
+</section>
+</section>
+<section id="query-executer-py">
+<h3>3. query_executer.py<a class="headerlink" href="#query-executer-py" title="Permalink to this heading">¶</a></h3>
+<p>This module handles the execution of API calls to NCBI E-utilities and processes the responses. It implements a two-step process for most queries: first using ESearch to get relevant IDs, then using EFetch (or ESummary for SNPs) to retrieve detailed information.</p>
+<section id="key-functions">
+<h4>Key Functions:<a class="headerlink" href="#key-functions" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">execute_eutils_api_call(request_data:</span> <span class="pre">Union[EutilsAPIRequest,</span> <span class="pre">EfetchRequest])</span></code>:</p>
+<ul>
+<li><p>Sends the API request to NCBI and handles the response.</p></li>
+<li><p>Can handle both ESearch and EFetch requests.</p></li>
+<li><p>Returns the response as JSON, raw bytes, or error message depending on the situation.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">extract_id_list(response,</span> <span class="pre">retmode:</span> <span class="pre">str)</span> <span class="pre">-&gt;</span> <span class="pre">List[int</span> <span class="pre">|</span> <span class="pre">str]</span></code>:</p>
+<ul>
+<li><p>Extracts the list of IDs from an ESearch response.</p></li>
+<li><p>Handles both JSON and XML response formats.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">make_efetch_request(api_call:</span> <span class="pre">EutilsAPIRequest,</span> <span class="pre">id_list:</span> <span class="pre">List[int</span> <span class="pre">|</span> <span class="pre">str])</span> <span class="pre">-&gt;</span> <span class="pre">EfetchRequest</span></code>:</p>
+<ul>
+<li><p>Creates an EFetchRequest object based on the initial ESearch results.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">handle_non_snp_query(api_call:</span> <span class="pre">EutilsAPIRequest)</span> <span class="pre">-&gt;</span> <span class="pre">List[Union[dict,</span> <span class="pre">str]]</span></code>:</p>
+<ul>
+<li><p>Manages the flow for non-SNP queries:</p>
+<ol class="arabic simple">
+<li><p>Executes ESearch to get relevant IDs.</p></li>
+<li><p>Creates and executes an EFetch request using those IDs.</p></li>
+</ol>
+</li>
+<li><p>Returns the EFetch response.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">handle_snp_query(api_call:</span> <span class="pre">EutilsAPIRequest)</span> <span class="pre">-&gt;</span> <span class="pre">List[Union[dict,</span> <span class="pre">str]]</span></code>:</p>
+<ul>
+<li><p>Manages the flow for SNP queries:</p>
+<ol class="arabic simple">
+<li><p>Executes ESearch to get relevant SNP IDs.</p></li>
+<li><p>Uses ESummary instead of EFetch for SNP data retrieval.</p></li>
+</ol>
+</li>
+<li><p>Returns the ESummary response.</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">save_response(response_list:</span> <span class="pre">List[Union[dict,</span> <span class="pre">str]],</span> <span class="pre">file_path:</span> <span class="pre">str,</span> <span class="pre">question_uuid:</span> <span class="pre">str)</span> <span class="pre">-&gt;</span> <span class="pre">str</span></code>:</p>
+<ul>
+<li><p>Saves the API response to a file for further processing or reference.</p></li>
+<li><p>Handles different response types (JSON, binary, text).</p></li>
+<li><p>Returns the filename of the saved response.</p></li>
+</ul>
+</li>
+</ul>
+</section>
+<section id="flow-of-operation">
+<h4>Flow of Operation:<a class="headerlink" href="#flow-of-operation" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">execute_eutils_api_call</span></code> function is called with an EutilsAPIRequest for the initial ESearch.</p></li>
+<li><p>The response is processed, and IDs are extracted using <code class="docutils literal notranslate"><span class="pre">extract_id_list</span></code>.</p></li>
+<li><p>For non-SNP queries:</p>
+<ul class="simple">
+<li><p>An EFetchRequest is created using <code class="docutils literal notranslate"><span class="pre">make_efetch_request</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">execute_eutils_api_call</span></code> is called again with this EFetchRequest.</p></li>
+</ul>
+</li>
+<li><p>For SNP queries:</p>
+<ul class="simple">
+<li><p>The ESummary endpoint is used instead of EFetch.</p></li>
+</ul>
+</li>
+<li><p>The final response (from EFetch or ESummary) is saved using <code class="docutils literal notranslate"><span class="pre">save_response</span></code>.</p></li>
+</ol>
+<p>This two-step process allows for efficient querying of NCBI databases, first narrowing down the relevant entries and then fetching detailed information only for those entries.</p>
+</section>
+</section>
+<section id="answer-extractor-py">
+<h3>4. answer_extractor.py<a class="headerlink" href="#answer-extractor-py" title="Permalink to this heading">¶</a></h3>
+<p>This module is responsible for processing the raw API responses from NCBI E-utilities and transforming them into concise, human-readable answers. It plays a crucial role in making the complex data returned by the API accessible and understandable to users.</p>
+<section id="key-class">
+<h4>Key Class:<a class="headerlink" href="#key-class" title="Permalink to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">EutilsAnswerExtractor</span></code></p>
+<p>This class contains methods to parse and extract information from API responses, utilizing language models to generate summaries.</p>
+</section>
+<section id="key-method">
+<h4>Key Method:<a class="headerlink" href="#key-method" title="Permalink to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">query(self,</span> <span class="pre">question:</span> <span class="pre">str,</span> <span class="pre">file_path:</span> <span class="pre">str,</span> <span class="pre">llm,</span> <span class="pre">embedding)</span> <span class="pre">-&gt;</span> <span class="pre">dict</span></code></p>
+<p>This method is the core of the answer extraction process. It takes four main inputs:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">question</span></code>: The original natural language query from the user.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">file_path</span></code>: Path to the file containing the API response.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">llm</span></code>: A language model (typically a Langchain ChatModel).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">embedding</span></code>: An embedding model for vector operations.</p></li>
+</ol>
+</section>
+<section id="id1">
+<h4>Process Flow:<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Data Loading</strong>:</p>
+<ul class="simple">
+<li><p>Reads the API response from the provided file path.</p></li>
+<li><p>Handles different file types (JSON, XML, text) based on the API response format.</p></li>
+</ul>
+</li>
+<li><p><strong>Text Splitting</strong>:</p>
+<ul class="simple">
+<li><p>Uses Langchain’s <code class="docutils literal notranslate"><span class="pre">CharacterTextSplitter</span></code> to break down large responses into manageable chunks.</p></li>
+<li><p>This step is crucial for processing lengthy API responses within the context window of the language model.</p></li>
+</ul>
+</li>
+<li><p><strong>Embedding and Retrieval</strong>:</p>
+<ul class="simple">
+<li><p>Creates embeddings of the text chunks using the provided embedding model.</p></li>
+<li><p>Stores these embeddings in a FAISS vector store for efficient retrieval.</p></li>
+</ul>
+</li>
+<li><p><strong>Question Answering</strong>:</p>
+<ul class="simple">
+<li><p>Utilizes Langchain’s <code class="docutils literal notranslate"><span class="pre">ConversationalRetrievalChain</span></code> to generate an answer based on the question and the relevant parts of the API response.</p></li>
+<li><p>This chain combines retrieval of relevant information with language model generation to produce coherent and accurate answers.</p></li>
+</ul>
+</li>
+<li><p><strong>Answer Formatting</strong>:</p>
+<ul class="simple">
+<li><p>Processes the generated answer to ensure it’s in a user-friendly format.</p></li>
+<li><p>Handles special cases for different types of queries (e.g., gene information, SNP details, OMIM entries).</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="key-features">
+<h4>Key Features:<a class="headerlink" href="#key-features" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Customized Prompts</strong>: Uses specially crafted prompts to guide the language model in extracting and summarizing relevant information from API responses.</p></li>
+<li><p><strong>Context-Aware Processing</strong>: Takes into account the original question to ensure the generated answer is relevant and on-topic.</p></li>
+<li><p><strong>Flexible Parsing</strong>: Capable of handling various response formats from different NCBI databases.</p></li>
+<li><p><strong>Memory Management</strong>: Utilizes Langchain’s memory features to maintain context across multiple queries if needed.</p></li>
+</ol>
+</section>
+<section id="langchain-integration">
+<h4>Langchain Integration:<a class="headerlink" href="#langchain-integration" title="Permalink to this heading">¶</a></h4>
+<ul class="simple">
+<li><p><strong>Text Splitting</strong>: Uses <code class="docutils literal notranslate"><span class="pre">CharacterTextSplitter</span></code> for efficient processing of large text blocks.</p></li>
+<li><p><strong>Vector Storage</strong>: Employs FAISS vector store through Langchain for quick and relevant information retrieval.</p></li>
+<li><p><strong>Retrieval Chain</strong>: Leverages <code class="docutils literal notranslate"><span class="pre">ConversationalRetrievalChain</span></code> for context-aware question answering.</p></li>
+<li><p><strong>Prompt Engineering</strong>: Utilizes Langchain’s prompt templates for consistent and effective interaction with the language model.</p></li>
+</ul>
+</section>
+<section id="id2">
+<h4>Example Usage:<a class="headerlink" href="#id2" title="Permalink to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">langchain.chat_models</span> <span class="kn">import</span> <span class="n">ChatOpenAI</span>
+<span class="kn">from</span> <span class="nn">langchain.embeddings</span> <span class="kn">import</span> <span class="n">OpenAIEmbeddings</span>
+
+<span class="c1"># Initialize components</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">embedding</span> <span class="o">=</span> <span class="n">OpenAIEmbeddings</span><span class="p">()</span>
+
+<span class="c1"># Create extractor instance</span>
+<span class="n">extractor</span> <span class="o">=</span> <span class="n">EutilsAnswerExtractor</span><span class="p">()</span>
+
+<span class="c1"># Extract answer</span>
+<span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;What is the function of the BRCA1 gene?&quot;</span>
+<span class="n">file_path</span> <span class="o">=</span> <span class="s2">&quot;path/to/api_response.json&quot;</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">extractor</span><span class="o">.</span><span class="n">query</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">embedding</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="s1">&#39;answer&#39;</span><span class="p">])</span>
+<span class="c1"># Output: BRCA1 (Breast Cancer 1) is a tumor suppressor gene that helps repair DNA damage and maintain genomic stability...</span>
+</pre></div>
+</div>
+<p>This module ensures that the wealth of information returned by NCBI E-utilities is distilled into clear, concise, and relevant answers to user queries, making complex biological data more accessible.</p>
+</section>
+</section>
+<section id="tool-py">
+<h3>5. tool.py<a class="headerlink" href="#tool-py" title="Permalink to this heading">¶</a></h3>
+<p>This file serves as the main entry point for the E-utilities tool, orchestrating the entire process from user input to final output. It brings together all the components of the tool to provide a seamless interface for querying NCBI databases.</p>
+<section id="id3">
+<h4>Key Function:<a class="headerlink" href="#id3" title="Permalink to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">eutils_tool(question:</span> <span class="pre">str,</span> <span class="pre">llm,</span> <span class="pre">embedding)</span> <span class="pre">-&gt;</span> <span class="pre">str</span></code></p>
+<p>This function is the primary interface for the E-utilities tool. It takes three main inputs:</p>
+<ol class="arabic simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">question</span></code>: The natural language query from the user.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">llm</span></code>: A language model (typically a Langchain ChatModel).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">embedding</span></code>: An embedding model for vector operations.</p></li>
+</ol>
+</section>
+<section id="id4">
+<h4>Process Flow:<a class="headerlink" href="#id4" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Initialization</strong>:</p>
+<ul class="simple">
+<li><p>Sets up necessary file paths and directories for logging and storing results.</p></li>
+<li><p>Loads the vector store containing relevant documentation.</p></li>
+</ul>
+</li>
+<li><p><strong>Query Generation</strong>:</p>
+<ul class="simple">
+<li><p>Calls <code class="docutils literal notranslate"><span class="pre">eutils_API_query_generator</span></code> to convert the natural language question into a structured <code class="docutils literal notranslate"><span class="pre">EutilsAPIRequest</span></code> object.</p></li>
+</ul>
+</li>
+<li><p><strong>API Interaction</strong>:</p>
+<ul class="simple">
+<li><p>Determines whether to use <code class="docutils literal notranslate"><span class="pre">handle_non_snp_query</span></code> or <code class="docutils literal notranslate"><span class="pre">handle_snp_query</span></code> based on the query type.</p></li>
+<li><p>Executes the appropriate function to interact with the NCBI E-utilities API.</p></li>
+</ul>
+</li>
+<li><p><strong>Response Processing</strong>:</p>
+<ul class="simple">
+<li><p>Saves the API response using <code class="docutils literal notranslate"><span class="pre">save_response</span></code> function.</p></li>
+<li><p>Logs the query details and file paths for future reference.</p></li>
+</ul>
+</li>
+<li><p><strong>Answer Extraction</strong>:</p>
+<ul class="simple">
+<li><p>Uses <code class="docutils literal notranslate"><span class="pre">result_file_extractor</span></code> to process the saved API response and generate a human-readable answer.</p></li>
+</ul>
+</li>
+<li><p><strong>Result Return</strong>:</p>
+<ul class="simple">
+<li><p>Returns the final answer as a string.</p></li>
+</ul>
+</li>
+</ol>
+</section>
+<section id="id5">
+<h4>Key Features:<a class="headerlink" href="#id5" title="Permalink to this heading">¶</a></h4>
+<ol class="arabic simple">
+<li><p><strong>Error Handling</strong>: Implements try-except blocks to gracefully handle potential errors during the process.</p></li>
+<li><p><strong>Logging</strong>: Maintains a detailed log of each query, including the question, generated file paths, and API URLs used.</p></li>
+<li><p><strong>Flexible Database Handling</strong>: Automatically adapts to different NCBI databases (Gene, SNP, OMIM) based on the query content.</p></li>
+<li><p><strong>Caching</strong>: Saves API responses, allowing for quick retrieval of previously queried information without repeating API calls.</p></li>
+</ol>
+</section>
+<section id="id6">
+<h4>Example Usage:<a class="headerlink" href="#id6" title="Permalink to this heading">¶</a></h4>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">langchain.chat_models</span> <span class="kn">import</span> <span class="n">ChatOpenAI</span>
+<span class="kn">from</span> <span class="nn">langchain.embeddings</span> <span class="kn">import</span> <span class="n">OpenAIEmbeddings</span>
+
+<span class="c1"># Initialize components</span>
+<span class="n">llm</span> <span class="o">=</span> <span class="n">ChatOpenAI</span><span class="p">(</span><span class="n">model</span><span class="o">=</span><span class="s2">&quot;gpt-4&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">embedding</span> <span class="o">=</span> <span class="n">OpenAIEmbeddings</span><span class="p">()</span>
+
+<span class="c1"># Use the tool</span>
+<span class="n">question</span> <span class="o">=</span> <span class="s2">&quot;What is the official gene symbol for LMP10?&quot;</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">eutils_tool</span><span class="p">(</span><span class="n">question</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">embedding</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="c1"># Output: The official gene symbol for LMP10 is PSMB10 (Proteasome 20S Subunit Beta 10).</span>
+</pre></div>
+</div>
+</section>
+<section id="integration-with-other-modules">
+<h4>Integration with Other Modules:<a class="headerlink" href="#integration-with-other-modules" title="Permalink to this heading">¶</a></h4>
+<p><code class="docutils literal notranslate"><span class="pre">tool.py</span></code> integrates all other modules of the E-utilities tool:</p>
+<ul class="simple">
+<li><p>Uses <code class="docutils literal notranslate"><span class="pre">query_generator.py</span></code> for translating natural language to structured queries.</p></li>
+<li><p>Employs <code class="docutils literal notranslate"><span class="pre">query_executer.py</span></code> for making API calls and handling responses.</p></li>
+<li><p>Utilizes <code class="docutils literal notranslate"><span class="pre">answer_extractor.py</span></code> for processing API responses into human-readable answers.</p></li>
+</ul>
+<p>This modular approach allows for easy maintenance and potential expansion to include more NCBI databases or query types in the future.</p>
+</section>
+</section>
+</section>
+</section>
+
+        </article>
+      </div>
+      <footer>
+        
+        <div class="related-pages">
+          <a class="next-page" href="nl_go_tool_doc.html">
+              <div class="page-info">
+                <div class="context">
+                  <span>Next</span>
+                </div>
+                <div class="title">Natural language to GO terms tool</div>
+              </div>
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+            </a>
+          <a class="prev-page" href="blat_tool_doc.html">
+              <svg class="furo-related-icon"><use href="#svg-arrow-right"></use></svg>
+              <div class="page-info">
+                <div class="context">
+                  <span>Previous</span>
+                </div>
+                
+                <div class="title">BLAT Tool</div>
+                
+              </div>
+            </a>
+        </div>
+        <div class="bottom-of-page">
+          <div class="left-details">
+            <div class="copyright">
+                Copyright &#169; 2024, Noah Bruderer
+            </div>
+            Made with <a href="https://www.sphinx-doc.org/">Sphinx</a> and <a class="muted-link" href="https://pradyunsg.me">@pradyunsg</a>'s
+            
+            <a href="https://github.com/pradyunsg/furo">Furo</a>
+            
+          </div>
+          <div class="right-details">
+            
+          </div>
+        </div>
+        
+      </footer>
+    </div>
+    <aside class="toc-drawer">
+      
+      
+      <div class="toc-sticky toc-scroll">
+        <div class="toc-title-container">
+          <span class="toc-title">
+            On this page
+          </span>
+        </div>
+        <div class="toc-tree-container">
+          <div class="toc-tree">
+            <ul>
+<li><a class="reference internal" href="#">E-utilities Tool</a><ul>
+<li><a class="reference internal" href="#basic-e-utilities-workflow">Basic E-utilities Workflow:</a></li>
+<li><a class="reference internal" href="#currently-supported-databases-accessible-via-ncbi-e-utilities">Currently Supported Databases Accessible via NCBI E-utilities:</a></li>
+<li><a class="reference internal" href="#input">Input</a></li>
+<li><a class="reference internal" href="#process">Process</a></li>
+<li><a class="reference internal" href="#output">Output</a></li>
+<li><a class="reference internal" href="#questions-that-can-be-answered">Questions that can be answered</a></li>
+<li><a class="reference internal" href="#eutils-tool-logic">Eutils Tool Logic</a><ul>
+<li><a class="reference internal" href="#api-form-py">1. api_form.py</a><ul>
+<li><a class="reference internal" href="#classes">Classes:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#query-generator-py">2. query_generator.py</a><ul>
+<li><a class="reference internal" href="#key-function">Key Function:</a></li>
+<li><a class="reference internal" href="#process-flow">Process Flow:</a></li>
+<li><a class="reference internal" href="#example-usage">Example Usage:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#query-executer-py">3. query_executer.py</a><ul>
+<li><a class="reference internal" href="#key-functions">Key Functions:</a></li>
+<li><a class="reference internal" href="#flow-of-operation">Flow of Operation:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#answer-extractor-py">4. answer_extractor.py</a><ul>
+<li><a class="reference internal" href="#key-class">Key Class:</a></li>
+<li><a class="reference internal" href="#key-method">Key Method:</a></li>
+<li><a class="reference internal" href="#id1">Process Flow:</a></li>
+<li><a class="reference internal" href="#key-features">Key Features:</a></li>
+<li><a class="reference internal" href="#langchain-integration">Langchain Integration:</a></li>
+<li><a class="reference internal" href="#id2">Example Usage:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#tool-py">5. tool.py</a><ul>
+<li><a class="reference internal" href="#id3">Key Function:</a></li>
+<li><a class="reference internal" href="#id4">Process Flow:</a></li>
+<li><a class="reference internal" href="#id5">Key Features:</a></li>
+<li><a class="reference internal" href="#id6">Example Usage:</a></li>
+<li><a class="reference internal" href="#integration-with-other-modules">Integration with Other Modules:</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+          </div>
+        </div>
+      </div>
+      
+      
+    </aside>
+  </div>
+</div><script data-url_root="../../../" id="documentation_options" src="../../../_static/documentation_options.js?v=f6245a2f"></script>
+    <script src="../../../_static/doctools.js?v=888ff710"></script>
+    <script src="../../../_static/sphinx_highlight.js?v=4825356b"></script>
+    <script src="../../../_static/scripts/furo.js?v=5fa4622c"></script>
+    <script src="../../../_static/clipboard.min.js?v=a7894cd8"></script>
+    <script src="../../../_static/copybutton.js?v=f281be69"></script>
+    </body>
+</html>
