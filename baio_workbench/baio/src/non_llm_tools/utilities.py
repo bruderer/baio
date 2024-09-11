@@ -3,6 +3,7 @@ import json
 import os
 import re
 import threading
+from typing import Any, Optional
 
 import pandas as pd
 
@@ -172,6 +173,8 @@ def log_question_uuid_json(
     file_path: str,
     log_file_path: str,
     full_url: str,
+    answer: Optional[Any] = None,
+    tool: Optional[str] = None,
 ):
     """
     Logs information about a question into a JSON file.
@@ -232,15 +235,17 @@ def log_question_uuid_json(
     full_file_path = os.path.join(file_path, file_name)
 
     # Add new entry with UUID, question, file name, and file path
-    data.append(
-        {
-            "uuid": question_uuid,
-            "question": question,
-            "file_name": file_name,
-            "file_path": full_file_path,
-            "API_info": full_url,
-        }
-    )
+    log_entry = {
+        "uuid": question_uuid,
+        "question": question,
+        "file_name": file_name,
+        "file_path": full_file_path,
+        "API_info": full_url,
+        "tool": tool,
+    }
+    if answer is not None:
+        log_entry["answer"] = answer
+    data.append(log_entry)
 
     # Write updated data
     with file_lock:
