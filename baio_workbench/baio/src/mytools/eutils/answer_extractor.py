@@ -129,21 +129,42 @@ def result_file_extractor(
 ) -> dict:
     """Extracting the answer result file"""
     print("In result file extractor")
+    try:
+        # Read the log file
+        with open(log_file_path, "r") as log_file:
+            log_data = json.load(log_file)
+    except json.JSONDecodeError:
+        print(f"Error decoding JSON from {log_file_path}")
+        return {"answer": "Error: Could not read log file"}
+    except FileNotFoundError:
+        print(f"Log file not found: {log_file_path}")
+        return {"answer": "Error: Log file not found"}
+    print(f"Log file path: {log_file_path}")
+    print(f"UUID: {uuid}")
 
-    # Read the log file to get the file path for the given UUID
-    with open(log_file_path, "r") as log_file:
-        log_data = json.load(log_file)
-    print(log_file_path)
-    print(uuid)
-    file_path = None
+    answer_extractor = EutilsAnswerExtractor()
+
     for entry in log_data:
         if entry["uuid"] == uuid:
-            file_path = entry["file_path"]
-            break
-
-    if not file_path:
-        return {"answer": f"Error: No file found for UUID {uuid}"}
-
-    # extract answer
-    answer_extractor = EutilsAnswerExtractor()
-    return answer_extractor.query(question, file_path, llm, embedding)
+            file_path = entry.get("file_path")
+            if not file_path:
+                return {"answer": f"Error: No file found for UUID {uuid}"}
+            try:
+                answer = answer_extractor.query(question, file_path, llm, embedding)[
+                    "answer"
+                ]
+            except Exception as e:
+                print(f"Error extracting answer: {str(e)}")
+                return {"answer": f"Error extracting answer: {str(e)}"}
+            # Add the answer to the entry
+            entry["answer"] = answer
+            # Write the updated log data back to the file
+            try:
+                with open(log_file_path, "w") as log_file:
+                    json.dump(log_data, log_file, indent=2)
+            except Exception as e:
+                print(f"Error writing updated log file: {str(e)}")
+                return {"answer": answer, "warning": "Answer not saved to log file"}
+            return {"answer": answer}
+    # If we didn't find a matching UUID
+    return {"answer": f"Error: No entry found for UUID {uuid}"}

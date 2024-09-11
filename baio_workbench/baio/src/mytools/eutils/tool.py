@@ -18,6 +18,7 @@ def eutils_tool(question: str, llm, embedding):
     and reads answer"""
     print("Running: Eutils tool")
     log_file_path = "./baio/data/output/eutils/results/log_file/eutils_log.json"
+    os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
     file_path = "./baio/data/output/eutils/results/files/"
     path_vdb = "./baio/data/persistant_files/vectorstores/ncbi_jin_db_faiss_index"
     doc = load_vector_store(path_vdb, embedding)
@@ -46,9 +47,10 @@ def eutils_tool(question: str, llm, embedding):
         file_path,
         log_file_path,
         api_call.full_search_url,
+        tool="eutils",
     )
     result = result_file_extractor(
         question, api_call.question_uuid, log_file_path, llm, embedding
     )
 
-    return result["answer"]
+    return result
