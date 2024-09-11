@@ -1,4 +1,4 @@
-from baio.src.mytools import (
+from baio.src.mytools import (  # nl_gene_protein_name_tool,
     BLAT_tool,
     MyTool,
     blast_tool,
@@ -17,9 +17,17 @@ tools = [
     MyTool(
         name="mygenetool",
         func=go_nl_query_tool,
-        description="use this tool if you are asked about to make gene ontology "
+        description="use this tool if you are asked about finding gene ontology."
         "enrichment annotations, go terms, gene ontology.",
     ),
+    # MyTool(
+    #     name="gene_protein_name_tool",
+    #     func=nl_gene_protein_name_tool,
+    #     description="use this tool if you are asked to find gene and protein names in a"
+    #     " sentence. NEVER USE IT IF YOU ARE ASKED FOR A GENE ALIAS OR THE OFFICIAL "
+    #     "GENE SYMBOL OF A GENE, ONLY USE IT IF YOU ARE EXPLICITLY ASKED TO EXTRACT "
+    #     "A GENE NAME OR PROTEIN NAME OUT OF A SENTENCE OR TEXT!!!!",
+    # ),
     MyTool(
         name="blast_tool",
         func=blast_tool,
@@ -32,7 +40,8 @@ tools = [
         name="BLAT_tool",
         func=BLAT_tool,
         description="Use for questions such s 'Align the DNA sequence to the "
-        "human:ATTCGCC...; If you are asked to\
+        "human:ATTCGCC...; or If you are asked to identify on what chromosome a DNA\
+        Sequence is located.\
         With this tool you have access to the ucsc genome data base. It can find where"
         " DNA sequences are aligned on the organisms genome, exact positions etc. ",
     ),
@@ -43,6 +52,7 @@ function_mapping = {
     "blast_tool": blast_tool,
     "BLAT_tool": BLAT_tool,
     "mygenetool": go_nl_query_tool,
+    # "gene_protein_name_tool": nl_gene_protein_name_tool,
 }
 
 
