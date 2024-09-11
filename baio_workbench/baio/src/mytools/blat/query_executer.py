@@ -65,42 +65,48 @@ def BLAT_API_call_executor(
 
 
 def save_BLAT_result(query_request, BLAT_response, file_path):
-    """Function saving BLAT results and returns file_name"""
+    """Function saving BLAT results and returning file_name"""
     try:
         # Set file name and construct full file path
         file_name = f"BLAT_results_{query_request.question_uuid}.json"
         full_file_path = os.path.join(file_path, file_name)
 
-        # Open the file for writing
+        # Open the file for writing JSON format
         with open(full_file_path, "w") as file:
-            # Write the static parts of the BLAT_response
-            for key in BLAT_response:
-                if key != "blat":
-                    json.dump({key: BLAT_response[key]}, file)
-                    file.write("\n")
+            # Write the non-'blat' parts of the BLAT_response
+            result_dict = {
+                key: value for key, value in BLAT_response.items() if key != "blat"
+            }
 
-            # Write each list inside the 'blat' key on a new line
-            for blat_entry in BLAT_response["blat"]:
+            # Write the static parts of the BLAT_response
+            json.dump(result_dict, file, indent=4)
+            file.write("\n")
+
+            # Write the 'blat' entries
+            for blat_entry in BLAT_response.get("blat", []):
                 json.dump(blat_entry, file)
                 file.write("\n")
 
-        return file_name
+        return file_name, full_file_path
 
     except Exception as e:
         print(f"Error saving as JSON: {e}")
-        # Determine the type of BLAT_response and save accordingly
+
+        # Determine the file type based on BLAT_response
         if isinstance(BLAT_response, bytes):
             file_name = f"BLAT_results_{query_request.question_uuid}.bin"
         elif isinstance(BLAT_response, str):
             file_name = f"BLAT_results_{query_request.question_uuid}.txt"
-        elif isinstance(BLAT_response, dict) or isinstance(BLAT_response, list):
+        elif isinstance(BLAT_response, (dict, list)):
             file_name = f"BLAT_results_{query_request.question_uuid}.json"
         else:
-            file_name = f"BLAT_results_{query_request.question_uuid}.json"
-        # Update the full file path
+            file_name = f"BLAT_results_{query_request.question_uuid}.unknown"
+
+        # Update the full file path with the new extension
         full_file_path = os.path.join(file_path, file_name)
-        print(f"\nFull_file_path:{full_file_path}")
-        # Save the file
+        print(f"\nFull_file_path: {full_file_path}")
+
+        # Save the file in the appropriate mode (binary or text)
         with open(
             full_file_path, "wb" if isinstance(BLAT_response, bytes) else "w"
         ) as file:
@@ -113,5 +119,6 @@ def save_BLAT_result(query_request, BLAT_response, file_path):
                     else str(BLAT_response)
                 )
             else:
-                file.write(json.dumps(BLAT_response))
-            return file_name
+                json.dump(BLAT_response, file, indent=4)
+
+        return file_name, full_file_path

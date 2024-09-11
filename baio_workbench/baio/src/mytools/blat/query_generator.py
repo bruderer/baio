@@ -24,7 +24,11 @@ def BLAT_api_query_generator(
             (
                 "human",
                 "Use the given format to extract information from the following input, "
-                "for human always use hg38: {input}",
+                "for human always use hg38 and only use specific regions if you "
+                "get it prompted (e.g. only 'chromosome' is not sufficient): "
+                "Always just align the dna sequence to the human genome if you are asked"
+                "The DNA sequence ATA... is on the human genome chromosome:"
+                "{input}",
             ),
             ("human", "Tip: Make sure to answer in the correct format"),
         ]

@@ -20,13 +20,33 @@ def BLAT_tool(question: str, llm, embedding):
     path_vdb = "./baio/data/persistant_files/vectorstores/ncbi_jin_db_faiss_index"
     os.makedirs(os.path.dirname(file_path), exist_ok=True)
     os.makedirs(os.path.dirname(log_file_path), exist_ok=True)
+
+    # Ensure the files are created empty
+    try:
+        open(file_path, "x").close()  # Create an empty file if it does not exist
+    except FileExistsError:
+        print(f"{file_path} already exists")
+
+    try:
+        open(
+            log_file_path, "x"
+        ).close()  # Create an empty log file if it does not exist
+    except FileExistsError:
+        print(f"{log_file_path} already exists")
+
     # generate api call
     doc = load_vector_store(path_vdb, embedding)
     query_request = BLAT_api_query_generator(question, llm, doc)
-    print(query_request)
+    # print(query_request)
     BLAT_response = BLAT_API_call_executor(query_request)
-    print(BLAT_response)
-    file_name = save_BLAT_result(query_request, BLAT_response, file_path)
+    # print(BLAT_response)
+    file_name, full_file_path = save_BLAT_result(
+        query_request, BLAT_response, file_path
+    )
+
+    result = BLAT_answer(full_file_path, question, llm, embedding)
+    print("BLAT_tool before saving log")
+    print(result)
     log_question_uuid_json(
         query_request.question_uuid,
         question,
@@ -34,6 +54,8 @@ def BLAT_tool(question: str, llm, embedding):
         file_path,
         log_file_path,
         query_request.full_url,
+        answer=result,
+        tool="BLAT",
     )
-    result = BLAT_answer(log_file_path, question, llm, embedding)
+
     return result

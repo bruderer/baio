@@ -63,6 +63,7 @@ def fetch_and_save_blast_results(
             save_path,
             log_file_path,
             request_data.full_url,
+            tool="BLAST",
         )
     else:
         print("Warning: question_uuid is None, skipping logging")

@@ -86,22 +86,21 @@ class AnswerExtractor:
         return relevant_api_call_info
 
 
-def BLAT_answer(log_file_path, question, llm, embedding):
-    with open(log_file_path, "r") as file:
-        data = json.load(file)
-    current_uuid = data[-1]["uuid"]
-    print(current_uuid)
-    # Access the last entry in the JSON array
-    last_entry = data[-1]
-    # Extract the file path
-    current_file_path = last_entry["file_path"]
+def BLAT_answer(current_file_path, question, llm, embedding):
+    # with open(log_file_path, "r") as file:
+    #     data = json.load(file)
+    # print(current_uuid)
+    # # Access the last entry in the JSON array
+    # last_entry = data[-1]
+    # # Extract the file path
+    # current_file_path = last_entry["file_path"]
     print("3: Extracting answer")
     answer_extractor = AnswerExtractor()
     result = answer_extractor.query(question, current_file_path, llm, embedding)
-    for entry in data:
-        if entry["uuid"] == current_uuid:
-            entry["answer"] = result["answer"]
-            break
-    with open(log_file_path, "w") as file:
-        json.dump(data, file, indent=4)
+    print(result)
+    # for entry in data:
+    #     if entry["uuid"] == current_uuid:
+    #         entry["answer"] = result["answer"]
+    #         with open(log_file_path, "w") as file:
+    #             json.dump(data, file, indent=4)
     return result["answer"]
